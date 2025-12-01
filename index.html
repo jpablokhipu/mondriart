@@ -691,6 +691,11 @@
                         const questionMessage = `
                             <strong>¿Quieres agregar algo más?</strong><br>
                             <span class="examples-inline">(Ej: Colores específicos, un plano abierto o cerrado, iluminación particular, atmósfera...)</span>
+                            <div style="margin-top: 12px;">
+                                <button class="choice-btn" onclick="generatePromptDirectly()" style="width: 100%; margin-bottom: 10px;">
+                                    ✨ Generar prompt tal como está
+                                </button>
+                            </div>
                         `;
                         addMessage(questionMessage, false, true, 'Extras');
 
@@ -796,7 +801,28 @@
             addMessage(optionsMessage, false);
         }
 
-        // FASE 1.5: Pregunta condicional #6 - Ya no se usa (integrada en askQuestion)
+        // FASE 1.5: Pregunta condicional #6
+        function generatePromptDirectly() {
+            // Ocultar botón
+            const buttons = document.querySelectorAll('.choice-btn');
+            buttons.forEach(b => b.style.display = 'none');
+
+            // Deshabilitar input
+            disableInput();
+
+            // Agregar respuesta del usuario
+            addMessage('Generar prompt tal como está', true);
+
+            showTyping();
+            setTimeout(() => {
+                hideTyping();
+                addMessage("Perfecto, voy a crear tu prompt...", false);
+
+                setTimeout(() => {
+                    generatePrompt();
+                }, 800);
+            }, 600);
+        }
 
         function continueGuidedFlow() {
             // Ocultar botones
