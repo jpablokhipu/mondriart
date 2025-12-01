@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎨 Mondriart - Prompt Artist v3.1</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #e5ddd5;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 500px;
+            height: 90vh;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header tipo WhatsApp */
+        .chat-header {
+            background: #075e54;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .agent-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            overflow: hidden;
+        }
+
+        .agent-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scale(1.15);
+        }
+
+        .agent-info h2 {
+            font-size: 1.1em;
+            margin-bottom: 2px;
+        }
+
+        .agent-status {
+            font-size: 0.8em;
+            opacity: 0.8;
+        }
+
+        /* Área de mensajes */
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect fill="%23ece5dd" width="100" height="100"/></svg>');
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Burbujas de mensajes */
+        .message {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            animation: messageIn 0.3s ease;
+        }
+
+        @keyframes messageIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.agent {
+            justify-content: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-bubble {
+            max-width: 75%;
+            padding: 10px 14px;
+            border-radius: 8px;
+            position: relative;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .message.agent .message-bubble {
+            background: white;
+            border-radius: 0 8px 8px 8px;
+        }
+
+        .message.user .message-bubble {
+            background: #dcf8c6;
+            border-radius: 8px 0 8px 8px;
+        }
+
+        .message-content {
+            color: #303030;
+            line-height: 1.5;
+            font-size: 0.95em;
+        }
+
+        .message-time {
+            font-size: 0.7em;
+            color: #667781;
+            text-align: right;
+            margin-top: 4px;
+        }
+
+        .message-label {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+        .examples-inline {
+            color: #888;
+            font-style: italic;
+        }
+
+        /* Typing indicator */
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: white;
+            border-radius: 18px;
+            width: fit-content;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .typing-indicator.active {
+            display: flex;
+        }
+
+        .typing-text {
+            color: #667781;
+            font-size: 0.9em;
+            font-style: italic;
+        }
+
+        .typing-dots {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #90949c;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.7; }
+            30% { transform: translateY(-10px); opacity: 1; }
+        }
+
+        /* Mensaje de validación */
+        .validation-message {
+            color: #d14836;
+            font-size: 0.85em;
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: #ffebee;
+            border-radius: 8px;
+            border-left: 3px solid #d14836;
+        }
+
+        /* Botones de elección */
+        .choice-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .choice-btn {
+            padding: 12px 16px;
+            border: 2px solid #075e54;
+            background: white;
+            color: #075e54;
+            border-radius: 12px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .choice-btn:hover {
+            background: #075e54;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .choice-btn-description {
+            font-size: 0.85em;
+            font-weight: 400;
+            margin-top: 4px;
+            opacity: 0.8;
+        }
+
+        /* Input area */
+        .input-area {
+            background: #f0f0f0;
+            padding: 10px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            border-top: 1px solid #ddd;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            background: white;
+            border-radius: 24px;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        #messageInput {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 0.95em;
+            font-family: inherit;
+        }
+
+        .send-button {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: #075e54;
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            transition: all 0.2s;
+        }
+
+        .send-button:hover {
+            background: #064e46;
+            transform: scale(1.05);
+        }
+
+        .send-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: scale(1);
+        }
+
+        /* Confirmation screen */
+        .confirmation-screen {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            padding: 15px;
+            background: #fff9e6;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .confirmation-screen.active {
+            display: flex;
+        }
+
+        .confirmation-title {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+
+        .confirmation-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .confirmation-item:last-child {
+            border-bottom: none;
+        }
+
+        .confirmation-label {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 0.85em;
+        }
+
+        .confirmation-value {
+            color: #555;
+            margin-top: 3px;
+            font-size: 0.9em;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn.primary {
+            background: #075e54;
+            color: white;
+        }
+
+        .action-btn.secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Result display */
+        .result-box {
+            background: white;
+            border: 2px solid #075e54;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .result-title {
+            font-weight: 600;
+            color: #075e54;
+            margin-bottom: 10px;
+        }
+
+        .prompt-text {
+            color: #333;
+            line-height: 1.6;
+            font-size: 0.9em;
+            white-space: pre-line;
+        }
+
+        .copy-button {
+            background: #075e54;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            margin-top: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+
+        .copy-button:hover {
+            background: #064e46;
+        }
+
+        /* Scrollbar styling */
+        .messages-area::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .messages-area::-webkit-scrollbar-thumb {
+            background: #cccccc;
+            border-radius: 3px;
+        }
+
+        .messages-area::-webkit-scrollbar-thumb:hover {
+            background: #999999;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            body {
+                padding: 0;
+            }
+
+            .chat-container {
+                max-width: 100%;
+                height: 100vh;
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <!-- Header -->
+        <div class="chat-header">
+            <div class="agent-avatar">
+                <img src="avatar.jpg" alt="Mondriart">
+            </div>
+            <div class="agent-info">
+                <h2>Mondriart</h2>
+                <div class="agent-status">Prompt Artist v3.1</div>
+            </div>
+        </div>
+
+        <!-- Messages Area -->
+        <div class="messages-area" id="messagesArea">
+            <!-- Messages will be added here dynamically -->
+        </div>
+
+        <!-- Typing Indicator -->
+        <div class="typing-indicator" id="typingIndicator">
+            <span class="typing-text">Mondriart está escribiendo</span>
+            <div class="typing-dots">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-area">
+            <div class="input-wrapper">
+                <input type="text" id="messageInput" placeholder="Escribe tu respuesta..." disabled>
+            </div>
+            <button class="send-button" id="sendButton" disabled>
+                ➤
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Estado de la conversación
+        let currentStep = 0;
+        let answers = {};
+        let subjectCategory = 'general';
+
+        // Preguntas adaptativas según contexto
+        const questionsTemplates = {
+            sujeto: {
+                label: 'Sujeto',
+                question: '<strong>¿Qué quieres crear?</strong><br><span class="examples-inline">(Ej: Una bailarina de ballet, un paisaje urbano, un coche deportivo...)</span>',
+                key: 'sujeto'
+            },
+            accion: {
+                persona: {
+                    label: 'Acción',
+                    question: '<strong>¿Qué está haciendo?</strong><br><span class="examples-inline">(Ej: Saltando en el aire, posando elegantemente, ajustándose el vestuario...)</span>',
+                    key: 'accion'
+                },
+                paisaje: {
+                    label: 'Acción',
+                    question: '<strong>¿Qué está ocurriendo?</strong><br><span class="examples-inline">(Ej: Hay una tormenta eléctrica, es un atardecer tranquilo, hay neblina densa...)</span>',
+                    key: 'accion'
+                },
+                objeto: {
+                    label: 'Acción',
+                    question: '<strong>¿En qué estado está?</strong><br><span class="examples-inline">(Ej: En reposo sobre una superficie, en movimiento dinámico, flotando en el espacio...)</span>',
+                    key: 'accion'
+                },
+                general: {
+                    label: 'Acción',
+                    question: '<strong>¿Qué está pasando?</strong><br><span class="examples-inline">(Ej: Hay movimiento intenso, hay quietud absoluta, hay elementos en transformación...)</span>',
+                    key: 'accion'
+                }
+            },
+            entorno: {
+                persona: {
+                    label: 'Entorno',
+                    question: '<strong>¿Dónde está?</strong><br><span class="examples-inline">(Ej: En un espacio amplio, en un lugar cerrado, en un ambiente urbano...)</span>',
+                    key: 'entorno'
+                },
+                paisaje: {
+                    label: 'Entorno',
+                    question: '<strong>¿Cómo es el lugar?</strong><br><span class="examples-inline">(Ej: Es concurrido, tiene una vista despejada, es un espacio natural...)</span>',
+                    key: 'entorno'
+                },
+                objeto: {
+                    label: 'Entorno',
+                    question: '<strong>¿Qué hay alrededor?</strong><br><span class="examples-inline">(Ej: Fondo minimalista, espacio abierto, ambiente con profundidad...)</span>',
+                    key: 'entorno'
+                },
+                general: {
+                    label: 'Entorno',
+                    question: '<strong>¿Cómo te imaginas el entorno de la escena?</strong><br><span class="examples-inline">(Ej: Ambiente urbano, espacio natural, entorno abstracto...)</span>',
+                    key: 'entorno'
+                }
+            },
+            estilo: {
+                label: 'Estilo',
+                question: '<strong>¿Qué estilo te gustaría darle?</strong><br><span class="examples-inline">(Ej: Fotografía profesional con luz natural, ilustración digital colorida, render 3D hiperrealista...)</span>',
+                key: 'estilo_iluminacion'
+            },
+            detalles: {
+                persona: {
+                    label: 'Detalles',
+                    question: '<strong>¿Qué características físicas destacan?</strong><br><span class="examples-inline">(Ej: Cabello recogido, vestuario específico, expresión particular...)</span>',
+                    key: 'detalles'
+                },
+                paisaje: {
+                    label: 'Detalles',
+                    question: '<strong>¿Qué elementos visuales destacan?</strong><br><span class="examples-inline">(Ej: Neblina baja, colores cálidos, texturas naturales...)</span>',
+                    key: 'detalles'
+                },
+                objeto: {
+                    label: 'Detalles',
+                    question: '<strong>¿Qué detalles del objeto resaltar?</strong><br><span class="examples-inline">(Ej: Reflejos metálicos, líneas definidas, detalles específicos...)</span>',
+                    key: 'detalles'
+                },
+                general: {
+                    label: 'Detalles',
+                    question: '<strong>¿Qué características específicas tendrá?</strong><br><span class="examples-inline">(Ej: Texturas particulares, paleta de colores, elementos destacados...)</span>',
+                    key: 'detalles'
+                }
+            }
+        };
+
+        // Función para detectar categoría del sujeto
+        function detectSubjectCategory(sujetoText) {
+            const texto = sujetoText.toLowerCase();
+
+            // Detectar persona/personaje
+            const personaKeywords = ['persona', 'mujer', 'hombre', 'niño', 'niña', 'bailarina', 'bailarín',
+                                     'retrato', 'modelo', 'artista', 'atleta', 'profesional', 'anciano',
+                                     'joven', 'chef', 'músico', 'actor', 'actriz'];
+            if (personaKeywords.some(kw => texto.includes(kw))) {
+                return 'persona';
+            }
+
+            // Detectar paisaje/escena
+            const paisajeKeywords = ['paisaje', 'ciudad', 'urbano', 'playa', 'montaña', 'bosque',
+                                     'calle', 'parque', 'jardín', 'valle', 'desierto', 'océano',
+                                     'atardecer', 'amanecer', 'naturaleza', 'escena'];
+            if (paisajeKeywords.some(kw => texto.includes(kw))) {
+                return 'paisaje';
+            }
+
+            // Detectar objeto/producto
+            const objetoKeywords = ['coche', 'auto', 'reloj', 'producto', 'objeto', 'teléfono',
+                                   'zapato', 'botella', 'comida', 'plato', 'joya', 'mueble',
+                                   'dispositivo', 'instrumento', 'herramienta', 'vehículo'];
+            if (objetoKeywords.some(kw => texto.includes(kw))) {
+                return 'objeto';
+            }
+
+            return 'general';
+        }
+
+        // Función para obtener la pregunta contextual
+        function getContextualQuestion(step) {
+            if (step === 0) {
+                return questionsTemplates.sujeto;
+            } else if (step === 1) {
+                return questionsTemplates.accion[subjectCategory];
+            } else if (step === 2) {
+                return questionsTemplates.entorno[subjectCategory];
+            } else if (step === 3) {
+                return questionsTemplates.estilo;
+            } else if (step === 4) {
+                return questionsTemplates.detalles[subjectCategory];
+            }
+        }
+
+        // Referencias DOM
+        const messagesArea = document.getElementById('messagesArea');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const typingIndicator = document.getElementById('typingIndicator');
+
+        // Funciones de utilidad
+        function scrollToBottom() {
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+
+        function getCurrentTime() {
+            const now = new Date();
+            return now.getHours().toString().padStart(2, '0') + ':' +
+                   now.getMinutes().toString().padStart(2, '0');
+        }
+
+        function addMessage(content, isUser = false, hasLabel = false, label = '') {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'agent'}`;
+
+            let messageHTML = '<div class="message-bubble">';
+
+            if (hasLabel) {
+                messageHTML += `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <div class="message-label">${label}</div>
+                </div>`;
+            }
+
+            messageHTML += `<div class="message-content">${content}</div>`;
+
+            messageHTML += `<div class="message-time">${getCurrentTime()}</div>`;
+            messageHTML += '</div>';
+
+            messageDiv.innerHTML = messageHTML;
+            messagesArea.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        function showTyping() {
+            typingIndicator.classList.add('active');
+            scrollToBottom();
+        }
+
+        function hideTyping() {
+            typingIndicator.classList.remove('active');
+        }
+
+        function enableInput() {
+            messageInput.disabled = false;
+            sendButton.disabled = false;
+            messageInput.focus();
+        }
+
+        function disableInput() {
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+        }
+
+        function askQuestion(index) {
+            if (index >= 5) {
+                // FASE 1.5: Analizar completitud antes de generar
+                const analysis = analyzeCompleteness();
+                console.log('Análisis de completitud:', analysis);
+
+                // Solo mostrar pregunta #6 si faltan 2 o más elementos importantes
+                if (analysis.missing.length >= 2) {
+                    showTyping();
+                    setTimeout(() => {
+                        hideTyping();
+                        showQuestion6Options(analysis.missing);
+                    }, 600);
+                } else {
+                    // Generar directamente si está completo o solo falta 1 elemento
+                    generatePrompt();
+                }
+                return;
+            }
+
+            const q = getContextualQuestion(index);
+
+            showTyping();
+            setTimeout(() => {
+                hideTyping();
+                addMessage(q.question, false, true, q.label);
+                enableInput();
+            }, 700);
+        }
+
+        function validateResponse(text) {
+            const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+
+            if (words.length < 2) {
+                return {
+                    valid: false,
+                    message: 'Tu respuesta es muy breve. Intenta dar más detalles para un mejor resultado (al menos 2-3 palabras).'
+                };
+            }
+
+            return { valid: true };
+        }
+
+        // FASE 1.5: Análisis de completitud del prompt
+        function analyzeCompleteness() {
+            const analysis = {
+                hasStyle: false,
+                hasLighting: false,
+                hasColors: false,
+                hasComposition: false,
+                hasMood: false
+            };
+
+            // Analizar todas las respuestas juntas
+            const allText = Object.values(answers).join(' ').toLowerCase();
+
+            // Detectar estilo
+            const styleKeywords = ['fotografía', 'foto', 'ilustración', 'ilustrado', 'render', '3d', 'pintura', 'digital', 'acuarela', 'óleo', 'dibujo', 'arte'];
+            analysis.hasStyle = styleKeywords.some(kw => allText.includes(kw));
+
+            // Detectar iluminación
+            const lightKeywords = ['luz', 'iluminación', 'iluminado', 'iluminada', 'oscuro', 'brillante', 'amanecer', 'atardecer', 'noche', 'día', 'sombra', 'reflejo', 'dorada', 'suave', 'dramática'];
+            analysis.hasLighting = lightKeywords.some(kw => allText.includes(kw));
+
+            // Detectar colores
+            const colorKeywords = ['rojo', 'azul', 'verde', 'amarillo', 'negro', 'blanco', 'dorado', 'plateado', 'coral', 'turquesa', 'color', 'colores', 'tono', 'tonos', 'paleta', 'cálido', 'frío', 'vibrante'];
+            analysis.hasColors = colorKeywords.some(kw => allText.includes(kw));
+
+            // Detectar composición
+            const compositionKeywords = ['fondo', 'primer plano', 'encuadre', 'ángulo', 'perspectiva', 'desenfoque', 'bokeh', 'profundidad', 'campo'];
+            analysis.hasComposition = compositionKeywords.some(kw => allText.includes(kw));
+
+            // Detectar mood/atmósfera
+            const moodKeywords = ['dramático', 'sereno', 'alegre', 'melancólico', 'misterioso', 'vibrante', 'tranquilo', 'energético', 'atmósfera', 'mood', 'ambiente'];
+            analysis.hasMood = moodKeywords.some(kw => allText.includes(kw));
+
+            // Identificar qué falta
+            const missing = [];
+            if (!analysis.hasStyle) missing.push('estilo artístico');
+            if (!analysis.hasLighting) missing.push('iluminación');
+            if (!analysis.hasColors) missing.push('colores específicos');
+            if (!analysis.hasComposition) missing.push('encuadre de la imagen');
+            if (!analysis.hasMood) missing.push('una atmósfera particular');
+
+            return {
+                complete: missing.length === 0,
+                missing: missing,
+                analysis: analysis
+            };
+        }
+
+        function showDetailedResponseOptions(fullDescription) {
+            const optionsMessage = `
+                <div style="margin-bottom: 10px;">
+                    Veo que diste bastante información detallada. ¿Cómo prefieres continuar?
+                </div>
+                <div class="choice-buttons">
+                    <button class="choice-btn" onclick="continueGuidedFlow()">
+                        📝 Guíame con preguntas
+                        <div class="choice-btn-description">Te haré preguntas específicas para refinar cada aspecto</div>
+                    </button>
+                    <button class="choice-btn" onclick="tryGenerateDirectly()">
+                        ⚡ Genera el prompt ahora
+                        <div class="choice-btn-description">Intentaré crear el prompt con la información que diste</div>
+                    </button>
+                </div>
+            `;
+
+            addMessage(optionsMessage, false);
+        }
+
+        // FASE 1.5: Pregunta condicional #6
+        function showQuestion6Options(missingElements) {
+            const missingList = missingElements.map(m => `<li>${m}</li>`).join('');
+
+            const optionsMessage = `
+                <div style="margin-bottom: 10px;">
+                    Ya casi tenemos todo. Si quieres, podrías agregar algo sobre:
+                    <ul style="margin: 10px 0; padding-left: 20px; color: #667781;">
+                        ${missingList}
+                    </ul>
+                    ¿Continuamos así o prefieres especificar más?
+                </div>
+                <div class="choice-buttons">
+                    <button class="choice-btn" onclick="skipQuestion6()">
+                        ⏭️ Continuar así
+                        <div class="choice-btn-description">Está bien, generemos el prompt</div>
+                    </button>
+                    <button class="choice-btn" onclick="enableQuestion6Input()">
+                        ✏️ Quiero especificar más
+                        <div class="choice-btn-description">Agregar información sobre esos elementos</div>
+                    </button>
+                </div>
+            `;
+
+            addMessage(optionsMessage, false);
+        }
+
+        function skipQuestion6() {
+            // Ocultar botones
+            const buttons = document.querySelectorAll('.choice-buttons');
+            buttons.forEach(b => b.style.display = 'none');
+
+            // Agregar respuesta del usuario
+            addMessage('Continuar así', true);
+
+            showTyping();
+            setTimeout(() => {
+                hideTyping();
+                addMessage("Perfecto, vamos a crear tu prompt con eso...", false);
+
+                setTimeout(() => {
+                    generatePrompt();
+                }, 800);
+            }, 600);
+        }
+
+        function enableQuestion6Input() {
+            // Ocultar botones
+            const buttons = document.querySelectorAll('.choice-buttons');
+            buttons.forEach(b => b.style.display = 'none');
+
+            // Agregar respuesta del usuario
+            addMessage('Quiero especificar más', true);
+
+            showTyping();
+            setTimeout(() => {
+                hideTyping();
+                const questionMessage = `
+                    <strong>¿Qué más te gustaría agregar?</strong><br>
+                    <span class="examples-inline">(Ej: Colores específicos, tipo de iluminación, atmósfera, detalles técnicos...)</span>
+                `;
+                addMessage(questionMessage, false, true, 'Extras');
+
+                // Marcar que estamos en pregunta 6
+                currentStep = 6;
+                enableInput();
+            }, 600);
+        }
+
+        function continueGuidedFlow() {
+            // Ocultar botones
+            const buttons = document.querySelectorAll('.choice-buttons');
+            buttons.forEach(b => b.style.display = 'none');
+
+            // Agregar respuesta del usuario como si hubiera elegido
+            addMessage('Prefiero el flujo guiado', true);
+
+            showTyping();
+            setTimeout(() => {
+                hideTyping();
+                addMessage("Perfecto, entonces vamos paso a paso para refinar cada detalle. Ahora...", false);
+
+                // Continuar con la siguiente pregunta
+                currentStep++;
+                setTimeout(() => {
+                    askQuestion(currentStep);
+                }, 400);
+            }, 600);
+        }
+
+        function tryGenerateDirectly() {
+            // Ocultar botones
+            const buttons = document.querySelectorAll('.choice-buttons');
+            buttons.forEach(b => b.style.display = 'none');
+
+            // Agregar respuesta del usuario
+            addMessage('Genera el prompt ahora', true);
+
+            showTyping();
+            setTimeout(() => {
+                hideTyping();
+                addMessage("✨ Perfecto, voy a analizar tu descripción y crear el prompt...", false);
+
+                // Generar prompt directamente desde la descripción completa
+                setTimeout(() => {
+                    generatePromptFromFullDescription();
+                }, 800);
+            }, 600);
+        }
+
+        function generatePromptFromFullDescription() {
+            // Usar la descripción completa del sujeto como base
+            const fullDescription = answers.sujeto;
+
+            // Capitalizar inicio del prompt (reglas del castellano)
+            const promptCapitalizado = fullDescription.charAt(0).toUpperCase() + fullDescription.slice(1);
+
+            // El prompt es la descripción refinada en estilo narrativo Nanobanana
+            // Mayúscula después de punto
+            const prompt = `${promptCapitalizado}. Imagen de alta calidad con atención a los detalles sutiles, composición profesional y atmósfera envolvente.`;
+
+            const resultHTML = `
+                <div class="result-title">✨ Tu Prompt Generado</div>
+                <div class="result-box">
+                    <div class="prompt-text">${prompt}</div>
+                    <div style="margin-top: 12px; font-size: 0.85em; color: #667781; font-style: italic;">
+                        Optimizado para Nanobanana/Gemini • También funciona en DALL-E y otros modelos
+                    </div>
+                    <button class="copy-button" onclick="copyPrompt()">📋 Copiar Prompt</button>
+                </div>
+                <div style="margin-top: 15px; text-align: center;">
+                    <button class="copy-button" onclick="location.reload()" style="background: #667781;">🔄 Crear Otro Prompt</button>
+                </div>
+            `;
+
+            showTyping();
+            setTimeout(() => {
+                hideTyping();
+                addMessage(resultHTML, false);
+            }, 1000);
+        }
+
+        function showValidationMessage(message) {
+            const existingValidation = document.querySelector('.validation-message');
+            if (existingValidation) {
+                existingValidation.remove();
+            }
+
+            const inputArea = document.querySelector('.input-area');
+            const validationDiv = document.createElement('div');
+            validationDiv.className = 'validation-message';
+            validationDiv.textContent = message;
+            inputArea.parentNode.insertBefore(validationDiv, inputArea);
+
+            setTimeout(() => {
+                validationDiv.style.transition = 'opacity 0.3s';
+                validationDiv.style.opacity = '0';
+                setTimeout(() => validationDiv.remove(), 300);
+            }, 3000);
+        }
+
+        function handleUserResponse() {
+            const userAnswer = messageInput.value.trim();
+
+            if (!userAnswer) {
+                return;
+            }
+
+            // Validar longitud de respuesta
+            const validation = validateResponse(userAnswer);
+            if (!validation.valid) {
+                showValidationMessage(validation.message);
+                return;
+            }
+
+            // Agregar respuesta del usuario
+            addMessage(userAnswer, true);
+
+            // Guardar respuesta
+            if (currentStep === 6) {
+                // Pregunta #6 especial (extras)
+                answers.extras = userAnswer;
+            } else {
+                // Preguntas normales (0-4)
+                const currentQuestion = getContextualQuestion(currentStep);
+                answers[currentQuestion.key] = userAnswer;
+            }
+
+            // Detectar categoría después de la primera respuesta (sujeto)
+            if (currentStep === 0) {
+                subjectCategory = detectSubjectCategory(userAnswer);
+                console.log('Categoría detectada:', subjectCategory);
+
+                // FASE 1: Detección simple de respuestas largas
+                const wordCount = userAnswer.split(/\s+/).filter(w => w.length > 0).length;
+                if (wordCount > 20) {
+                    // Limpiar input
+                    messageInput.value = '';
+                    disableInput();
+
+                    // Mostrar opciones
+                    showTyping();
+                    setTimeout(() => {
+                        hideTyping();
+                        showDetailedResponseOptions(userAnswer);
+                    }, 600);
+                    return; // Detener flujo normal
+                }
+            }
+
+            // Limpiar input
+            messageInput.value = '';
+            disableInput();
+
+            // FASE 1.5: Manejar respuesta de pregunta #6 (extras)
+            if (currentStep === 6) {
+                showTyping();
+                setTimeout(() => {
+                    hideTyping();
+                    addMessage("✨ Genial, ahora sí tenemos todo. Voy a crear tu prompt...", false);
+
+                    setTimeout(() => {
+                        generatePrompt();
+                    }, 800);
+                }, 600);
+                return;
+            }
+
+            // Comentario contextual del agente según la pregunta actual
+            const contextualComments = [
+                "Perfecto, ese será el elemento principal de tu imagen. Ahora...",
+                "Entendido, esto ayudará a determinar la actividad de la escena. Siguiente...",
+                "Genial, ya tengo el contexto espacial. Continuemos...",
+                "Excelente, eso define el mood y la estética visual. Y por último...",
+                "✨ Perfecto, con esos detalles completamos tu visión. Dame un momento para crear tu prompt..."
+            ];
+            const contextualComment = contextualComments[currentStep];
+
+            showTyping();
+            setTimeout(() => {
+                hideTyping();
+                addMessage(contextualComment, false);
+
+                // Siguiente pregunta
+                currentStep++;
+                setTimeout(() => {
+                    askQuestion(currentStep);
+                }, 400);
+            }, 600);
+        }
+
+
+        function parseEstiloIluminacion(text) {
+            const lowerText = text.toLowerCase();
+            let estilo = text;
+            let iluminacion = "iluminación natural";
+
+            // Intentar separar estilo e iluminación si menciona palabras clave
+            if (lowerText.includes('luz') || lowerText.includes('iluminación') || lowerText.includes('iluminado')) {
+                // Buscar separadores comunes: "con", "y", ","
+                const separatorMatch = text.match(/(.+?)\s+(con|y|,)\s+(.+)/i);
+                if (separatorMatch) {
+                    estilo = separatorMatch[1].trim();
+                    iluminacion = separatorMatch[3].trim();
+                } else {
+                    // Si menciona luz pero no hay separador claro, todo es iluminación
+                    iluminacion = text;
+
+                    // Inferir estilo básico si menciona fotografía/ilustración/render
+                    if (lowerText.includes('fotograf')) {
+                        estilo = "fotografía";
+                    } else if (lowerText.includes('ilustr')) {
+                        estilo = "ilustración";
+                    } else if (lowerText.includes('render') || lowerText.includes('3d')) {
+                        estilo = "render 3D";
+                    } else {
+                        estilo = "imagen";
+                    }
+                }
+            } else {
+                // No menciona iluminación explícitamente
+                // Solo usar el texto como estilo, iluminación queda genérica
+                estilo = text;
+                iluminacion = "iluminación natural";
+            }
+
+            return { estilo, iluminacion };
+        }
+
+        function generatePrompt() {
+            showTyping();
+
+            setTimeout(() => {
+                hideTyping();
+
+                const { estilo, iluminacion } = parseEstiloIluminacion(answers.estilo_iluminacion);
+
+                // Generar prompt estilo Nanobanana: narrativa fluida en español
+                // Asegurar capitalización correcta según reglas del castellano
+
+                // Capitalizar inicio del prompt (sujeto - después de nada = mayúscula)
+                const sujetoCapitalizado = answers.sujeto.charAt(0).toUpperCase() + answers.sujeto.slice(1);
+
+                // Minúscula para acción (va después del sujeto, sin punto previo)
+                const accionMinuscula = answers.accion.charAt(0).toLowerCase() + answers.accion.slice(1);
+
+                // Minúscula para detalles (va después de coma)
+                const detallesMinuscula = answers.detalles.charAt(0).toLowerCase() + answers.detalles.slice(1);
+
+                // Minúscula para entorno (va después de "en", sin punto previo)
+                const entornoMinuscula = answers.entorno.charAt(0).toLowerCase() + answers.entorno.slice(1);
+
+                // Capitalizar después de punto (estilo)
+                const estiloCapitalizado = estilo.charAt(0).toUpperCase() + estilo.slice(1);
+
+                // Minúscula para iluminación (va después de "con")
+                const iluminacionMinuscula = iluminacion.charAt(0).toLowerCase() + iluminacion.slice(1);
+
+                // Construir prompt narrativo con ortografía correcta
+                // Mayúsculas después de punto, minúsculas en otros contextos
+                let prompt = `${sujetoCapitalizado} ${accionMinuscula}, con ${detallesMinuscula}. La escena se desarrolla en ${entornoMinuscula}. ${estiloCapitalizado} con ${iluminacionMinuscula}`;
+
+                // FASE 1.5: Agregar información extra si existe (de pregunta #6)
+                if (answers.extras) {
+                    // Capitalizar primera letra de extras si no empieza con minúscula intencionalmente
+                    const extrasMinuscula = answers.extras.charAt(0).toLowerCase() + answers.extras.slice(1);
+                    prompt += `, ${extrasMinuscula}`;
+                }
+
+                // Cierre del prompt
+                prompt += `, creando una composición que resalta los detalles sutiles y la atmósfera de la imagen.`;
+
+                const resultHTML = `
+                    <div class="result-title">✨ Tu Prompt Generado</div>
+                    <div class="result-box">
+                        <div class="prompt-text">${prompt}</div>
+                        <div style="margin-top: 12px; font-size: 0.85em; color: #667781; font-style: italic;">
+                            Optimizado para Nanobanana/Gemini • También funciona en DALL-E y otros modelos
+                        </div>
+                        <button class="copy-button" onclick="copyPrompt()">📋 Copiar Prompt</button>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="action-btn primary" onclick="restart()">Crear Nuevo Prompt</button>
+                    </div>
+                `;
+
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message agent';
+                messageDiv.innerHTML = `
+                    <div class="message-bubble" style="max-width: 90%;">
+                        ${resultHTML}
+                    </div>
+                `;
+
+                messagesArea.appendChild(messageDiv);
+                scrollToBottom();
+
+                // Guardar el prompt generado
+                window.generatedPrompt = prompt;
+            }, 1500);
+        }
+
+        function copyPrompt() {
+            if (window.generatedPrompt) {
+                navigator.clipboard.writeText(window.generatedPrompt).then(() => {
+                    alert('✅ Prompt copiado al portapapeles');
+                });
+            }
+        }
+
+        function restart() {
+            answers = {};
+            currentStep = 0;
+            subjectCategory = 'general';
+            messagesArea.innerHTML = '';
+
+            addMessage('¡Hola! 👋 <strong>Soy Mondriart</strong>, tu asistente de prompts. <strong>Te haré preguntas claves y crearé un prompt detallado</strong> para usar en tu modelo de imágenes favorito!', false);
+
+            setTimeout(() => {
+                askQuestion(0);
+            }, 1000);
+        }
+
+        // Event listeners
+        sendButton.addEventListener('click', handleUserResponse);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleUserResponse();
+            }
+        });
+
+        // Iniciar conversación
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                addMessage('¡Hola! 👋 <strong>Soy Mondriart</strong>, tu asistente de prompts. <strong>Te haré preguntas claves y crearé un prompt detallado</strong> para usar en tu modelo de imágenes favorito!', false);
+                setTimeout(() => {
+                    askQuestion(0);
+                }, 1500);
+            }, 500);
+        });
+    </script>
+</body>
+</html>

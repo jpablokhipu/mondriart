@@ -1,0 +1,20 @@
+# Archivos de desarrollo
+prompt-artist-web.html
+
+# Carpetas del sistema BMAD
+bmad/
+_cfg/
+
+# IDEs
+.idea/
+.vscode/
+
+# Archivos del sistema
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Archivos temporales
+*.tmp
+*.bak
