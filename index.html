@@ -688,8 +688,16 @@
                     showTyping();
                     setTimeout(() => {
                         hideTyping();
-                        showQuestion6Options(analysis.missing);
-                    }, 600);
+                        const questionMessage = `
+                            <strong>¿Quieres agregar algo más?</strong><br>
+                            <span class="examples-inline">(Ej: Colores específicos, un plano abierto o cerrado, iluminación particular, atmósfera...)</span>
+                        `;
+                        addMessage(questionMessage, false, true, 'Extras');
+
+                        // Marcar que estamos en pregunta 6
+                        currentStep = 6;
+                        enableInput();
+                    }, 700);
                 } else {
                     // Generar directamente si está completo o solo falta 1 elemento
                     generatePrompt();
@@ -788,74 +796,7 @@
             addMessage(optionsMessage, false);
         }
 
-        // FASE 1.5: Pregunta condicional #6
-        function showQuestion6Options(missingElements) {
-            const missingList = missingElements.map(m => `<li>${m}</li>`).join('');
-
-            const optionsMessage = `
-                <div style="margin-bottom: 10px;">
-                    Ya casi tenemos todo. Si quieres, podrías agregar algo sobre:
-                    <ul style="margin: 10px 0; padding-left: 20px; color: #667781;">
-                        ${missingList}
-                    </ul>
-                    ¿Continuamos así o prefieres especificar más?
-                </div>
-                <div class="choice-buttons">
-                    <button class="choice-btn" onclick="skipQuestion6()">
-                        ⏭️ Continuar así
-                        <div class="choice-btn-description">Está bien, generemos el prompt</div>
-                    </button>
-                    <button class="choice-btn" onclick="enableQuestion6Input()">
-                        ✏️ Quiero especificar más
-                        <div class="choice-btn-description">Agregar información sobre esos elementos</div>
-                    </button>
-                </div>
-            `;
-
-            addMessage(optionsMessage, false);
-        }
-
-        function skipQuestion6() {
-            // Ocultar botones
-            const buttons = document.querySelectorAll('.choice-buttons');
-            buttons.forEach(b => b.style.display = 'none');
-
-            // Agregar respuesta del usuario
-            addMessage('Continuar así', true);
-
-            showTyping();
-            setTimeout(() => {
-                hideTyping();
-                addMessage("Perfecto, vamos a crear tu prompt con eso...", false);
-
-                setTimeout(() => {
-                    generatePrompt();
-                }, 800);
-            }, 600);
-        }
-
-        function enableQuestion6Input() {
-            // Ocultar botones
-            const buttons = document.querySelectorAll('.choice-buttons');
-            buttons.forEach(b => b.style.display = 'none');
-
-            // Agregar respuesta del usuario
-            addMessage('Quiero especificar más', true);
-
-            showTyping();
-            setTimeout(() => {
-                hideTyping();
-                const questionMessage = `
-                    <strong>¿Qué más te gustaría agregar?</strong><br>
-                    <span class="examples-inline">(Ej: Colores específicos, tipo de iluminación, atmósfera, detalles técnicos...)</span>
-                `;
-                addMessage(questionMessage, false, true, 'Extras');
-
-                // Marcar que estamos en pregunta 6
-                currentStep = 6;
-                enableInput();
-            }, 600);
-        }
+        // FASE 1.5: Pregunta condicional #6 - Ya no se usa (integrada en askQuestion)
 
         function continueGuidedFlow() {
             // Ocultar botones
