@@ -433,6 +433,64 @@
             background: #999999;
         }
 
+        /* Tooltip styles */
+        .tooltip-container {
+            position: relative;
+            display: inline-block;
+            margin-left: 4px;
+            cursor: help;
+        }
+
+        .tooltip-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #128c7e;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            vertical-align: middle;
+        }
+
+        .tooltip-text {
+            visibility: hidden;
+            width: 280px;
+            background-color: #333;
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1000;
+            top: 50%;
+            left: calc(100% + 8px);
+            transform: translateY(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.85em;
+            line-height: 1.4;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            right: 100%;
+            margin-top: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent #333 transparent transparent;
+        }
+
+        .tooltip-container:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
         /* Responsive */
         @media (max-width: 600px) {
             body {
@@ -443,6 +501,19 @@
                 max-width: 100%;
                 height: 100vh;
                 border-radius: 0;
+            }
+
+            .tooltip-text {
+                width: 220px;
+                left: auto;
+                right: -10px;
+                transform: translateY(-50%);
+            }
+
+            .tooltip-text::after {
+                right: auto;
+                left: 8px;
+                border-color: transparent transparent transparent #333;
             }
         }
     </style>
@@ -496,77 +567,77 @@
         const questionsTemplates = {
             sujeto: {
                 label: 'Sujeto',
-                question: '<strong>¿Qué quieres crear?</strong><br><span class="examples-inline">(Ej.: una bailarina de ballet, un paisaje urbano, un coche deportivo... ¡lo que se te ocurra!)</span>',
+                question: '<strong>¿Qué imagen quieres crear?</strong><br><span class="examples-inline">(Ej.: una bailarina de ballet, un paisaje urbano, un auto deportivo. Con uno o dos adjetivos es suficiente.)</span>',
                 key: 'sujeto'
             },
             accion: {
                 persona: {
                     label: 'Acción',
-                    question: '<strong>¿Qué está haciendo?</strong><br><span class="examples-inline">(Ej.: saltando en el aire, posando elegantemente, ajustándose el vestuario... ¡Expláyate con total libertad!)</span>',
+                    question: '<strong>¿Qué está haciendo?</strong><br><span class="examples-inline">(Ej.: saltando en el aire, posando elegantemente, ajustándose el vestuario. ¡Expláyate con total libertad!)</span>',
                     key: 'accion'
                 },
                 paisaje: {
                     label: 'Acción',
-                    question: '<strong>¿Qué está ocurriendo?</strong><br><span class="examples-inline">(Ej.: tormenta eléctrica en desarrollo, atardecer tranquilo, neblina densa envolvente... ¡Expláyate con total libertad!)</span>',
+                    question: '<strong>¿Qué está ocurriendo?</strong><br><span class="examples-inline">(Ej.: tormenta eléctrica en desarrollo, atardecer tranquilo, neblina densa envolvente. ¡Expláyate con total libertad!)</span>',
                     key: 'accion'
                 },
                 objeto: {
                     label: 'Acción',
-                    question: '<strong>¿En qué estado está?</strong><br><span class="examples-inline">(Ej.: en reposo sobre una superficie, en movimiento dinámico, flotando en el espacio... ¡Expláyate con total libertad!)</span>',
+                    question: '<strong>¿En qué estado está?</strong><br><span class="examples-inline">(Ej.: en reposo sobre una superficie, en movimiento dinámico, flotando en el espacio. ¡Expláyate con total libertad!)</span>',
                     key: 'accion'
                 },
                 general: {
                     label: 'Acción',
-                    question: '<strong>¿Qué está pasando?</strong><br><span class="examples-inline">(Ej.: movimiento intenso, quietud absoluta, elementos en transformación... ¡Expláyate con total libertad!)</span>',
+                    question: '<strong>¿Qué está pasando?</strong><br><span class="examples-inline">(Ej.: movimiento intenso, quietud absoluta, elementos en transformación. ¡Expláyate con total libertad!)</span>',
                     key: 'accion'
                 }
             },
             entorno: {
                 persona: {
                     label: 'Entorno',
-                    question: '<strong>¿Dónde está?</strong><br><span class="examples-inline">(Ej.: espacio amplio y luminoso, lugar cerrado e íntimo, ambiente urbano transitado... Sé lo más descriptivo que puedas con esto.)</span>',
+                    question: '<strong>¿Cómo visualizas el entorno?</strong><br><span class="examples-inline">(Ej.: espacio amplio y luminoso, lugar cerrado e íntimo, ambiente urbano transitado. Sé lo más descriptivo que puedas.)</span>',
                     key: 'entorno'
                 },
                 paisaje: {
                     label: 'Entorno',
-                    question: '<strong>¿Cómo es el lugar?</strong><br><span class="examples-inline">(Ej.: lugar concurrido, vista despejada, espacio natural abierto... Sé lo más descriptivo que puedas con esto.)</span>',
+                    question: '<strong>¿Cómo es el lugar?</strong><br><span class="examples-inline">(Ej.: lugar concurrido, vista despejada, espacio natural abierto. Sé lo más descriptivo que puedas.)</span>',
                     key: 'entorno'
                 },
                 objeto: {
                     label: 'Entorno',
-                    question: '<strong>¿Qué hay alrededor?</strong><br><span class="examples-inline">(Ej.: fondo minimalista, espacio abierto, ambiente con profundidad... Sé lo más descriptivo que puedas con esto.)</span>',
+                    question: '<strong>¿Qué hay alrededor?</strong><br><span class="examples-inline">(Ej.: fondo minimalista, espacio abierto, ambiente con profundidad. Sé lo más descriptivo que puedas.)</span>',
                     key: 'entorno'
                 },
                 general: {
                     label: 'Entorno',
-                    question: '<strong>¿Cómo te imaginas el entorno de la escena?</strong><br><span class="examples-inline">(Ej.: ambiente urbano, espacio natural, entorno abstracto... Sé lo más descriptivo que puedas con esto.)</span>',
+                    question: '<strong>¿Cómo te imaginas el entorno de la escena?</strong><br><span class="examples-inline">(Ej.: ambiente urbano, espacio natural, entorno abstracto. Sé lo más descriptivo que puedas.)</span>',
                     key: 'entorno'
                 }
             },
             estilo: {
                 label: 'Estilo',
-                question: '<strong>¿Qué estilo te gustaría darle?</strong><br><span class="examples-inline">(Ej.: fotografía profesional con luz natural, ilustración digital colorida, render 3D hiperrealista...)</span>',
+                question: '<strong>¿Qué estilo te gustaría darle?</strong><br><span class="examples-inline">(Ej.: fotografía profesional con luz natural, ilustración digital colorida, render 3D hiperrealista. Puedes ser muy técnico en esto.<span class="tooltip-container"><span class="tooltip-icon">i</span><span class="tooltip-text">Puedes incluir la luminosidad del día (blue hour), el tipo de cámara (Canon D5), la composición (regla de los tercios), etc.</span></span>)</span>',
                 key: 'estilo_iluminacion'
             },
             detalles: {
                 persona: {
                     label: 'Detalles',
-                    question: '<strong>¿Qué características físicas destacan?</strong><br><span class="examples-inline">(Ej.: cabello recogido, vestuario de colores específicos, expresión particular... Puedes combinar varias.)</span>',
+                    question: '<strong>¿Qué características físicas destacan?</strong><br><span class="examples-inline">(Ej.: cabello recogido, vestuario de colores específicos, expresión particular. Puedes combinar varias.)</span>',
                     key: 'detalles'
                 },
                 paisaje: {
                     label: 'Detalles',
-                    question: '<strong>¿Qué elementos visuales destacan?</strong><br><span class="examples-inline">(Ej.: neblina baja, colores cálidos, texturas naturales... Puedes combinar varias.)</span>',
+                    question: '<strong>¿Qué elementos visuales destacan?</strong><br><span class="examples-inline">(Ej.: neblina baja, colores cálidos, texturas naturales. Puedes combinar varias.)</span>',
                     key: 'detalles'
                 },
                 objeto: {
                     label: 'Detalles',
-                    question: '<strong>¿Qué detalles del objeto resaltar?</strong><br><span class="examples-inline">(Ej.: reflejos metálicos, tonos o colores específicos, acabados pulidos... Puedes combinar varias.)</span>',
+                    question: '<strong>¿Qué detalles del objeto resaltar?</strong><br><span class="examples-inline">(Ej.: reflejos metálicos, tonos o colores específicos, acabados pulidos. Puedes combinar varias.)</span>',
                     key: 'detalles'
                 },
                 general: {
                     label: 'Detalles',
-                    question: '<strong>¿Qué características específicas tendrá?</strong><br><span class="examples-inline">(Ej.: texturas particulares, paleta de colores, elementos destacados... Puedes combinar varias.)</span>',
+                    question: '<strong>¿Qué características específicas tendrá?</strong><br><span class="examples-inline">(Ej.: texturas particulares, paleta de colores, elementos destacados. Puedes combinar varias.)</span>',
                     key: 'detalles'
                 }
             }
@@ -690,7 +761,7 @@
                         hideTyping();
                         const questionMessage = `
                             <strong>¿Quieres agregar algo más?</strong><br>
-                            <span class="examples-inline">(Ej.: tipo de iluminación, plano abierto o cerrado, atmósfera dramática o serena, etc.)</span>
+                            <span class="examples-inline">(Ej.: tipo de iluminación, plano abierto o cerrado, atmósfera dramática o serena)</span>
                             <div style="margin-top: 12px;">
                                 <button class="choice-btn" onclick="generatePromptDirectly()" style="width: 100%; margin-bottom: 10px;">
                                     ✨ Generar prompt tal como está
@@ -1215,7 +1286,7 @@
             subjectCategory = 'general';
             messagesArea.innerHTML = '';
 
-            addMessage('¡Hola! 👋 Soy Mondriart. Te guiaré con <strong>preguntas clave de prompting</strong> para crear un <strong>resultado coherente y profesional</strong> para usar en tu modelo de imágenes favorito.', false);
+            addMessage('¡Hola! 👋 Soy Mondriart. Te guiaré con <strong>preguntas clave de prompting</strong> para generar un prompt optimizado para Nano Banana, DALL-E y otros modelos.', false);
 
             setTimeout(() => {
                 askQuestion(0);
@@ -1233,7 +1304,7 @@
         // Iniciar conversación
         window.addEventListener('load', () => {
             setTimeout(() => {
-                addMessage('¡Hola! 👋 Soy Mondriart. Te guiaré con <strong>preguntas clave de prompting</strong> para crear un <strong>resultado coherente y profesional</strong> para usar en tu modelo de imágenes favorito.', false);
+                addMessage('¡Hola! 👋 Soy Mondriart. Te guiaré con <strong>preguntas clave de prompting</strong> para generar un prompt optimizado para Nano Banana, DALL-E y otros modelos.', false);
                 setTimeout(() => {
                     askQuestion(0);
                 }, 1500);
