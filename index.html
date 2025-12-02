@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎨 Mondriart - Prompt Artist v3.1</title>
+    <title>🎨 Mondriart - Prompt Artist Inline</title>
     <style>
         * {
             margin: 0;
@@ -12,963 +12,563 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
             background: #F9F8F4;
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             padding: 20px;
+            color: #2c2c2c;
         }
 
-        .chat-container {
+        .container {
             width: 100%;
-            max-width: 500px;
-            height: 90vh;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+            max-width: 900px;
+            text-align: left;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            min-height: 60vh;
         }
 
-        /* Header tipo WhatsApp */
-        .chat-header {
-            background: #075e54;
-            color: white;
-            padding: 15px 20px;
+        .brand-mark {
+            font-size: 0.9em;
+            font-weight: 500;
+            margin-bottom: 15px;
+            font-family: inherit;
+            letter-spacing: 0.02em;
+        }
+
+        .brand-mark .step {
+            color: #4a4a4a;
+        }
+
+        .brand-mark .prompt {
+            color: #DC143C;
+        }
+
+        .static-question {
+            font-size: 2em;
+            font-weight: 800;
+            margin-bottom: 40px;
+            color: #2c2c2c;
+            letter-spacing: -0.02em;
+        }
+
+        .accumulated-text {
+            font-size: 1.3em; /* Más pequeño cuando está resuelto */
+            line-height: 1.6;
+            margin-bottom: 20px;
+            word-wrap: break-word;
+            color: #5e5d59;
+        }
+
+        .accumulated-text div {
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
             gap: 15px;
         }
 
-        .agent-avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+        .input-line {
+            font-size: 1.8em; /* Más grande mientras se escribe */
+            line-height: 1.6;
+            margin-bottom: 30px;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5em;
-            overflow: hidden;
-        }
-
-        .agent-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transform: scale(1.15);
-        }
-
-        .agent-info h2 {
-            font-size: 1.1em;
-            margin-bottom: 2px;
-        }
-
-        .agent-status {
-            font-size: 0.8em;
-            opacity: 0.8;
-        }
-
-        /* Área de mensajes */
-        .messages-area {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect fill="%23ece5dd" width="100" height="100"/></svg>');
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        /* Burbujas de mensajes */
-        .message {
-            display: flex;
-            align-items: flex-end;
-            gap: 8px;
-            animation: messageIn 0.3s ease;
-        }
-
-        @keyframes messageIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .message.agent {
-            justify-content: flex-start;
-        }
-
-        .message.user {
-            justify-content: flex-end;
-        }
-
-        .message-bubble {
-            max-width: 75%;
-            padding: 10px 14px;
-            border-radius: 8px;
+            align-items: flex-start;
+            gap: 15px;
             position: relative;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            transition: font-size 0.3s ease;
+            flex-wrap: wrap;
         }
 
-        .message.agent .message-bubble {
-            background: white;
-            border-radius: 0 8px 8px 8px;
-        }
-
-        .message.user .message-bubble {
-            background: #dcf8c6;
-            border-radius: 8px 0 8px 8px;
-        }
-
-        .message-content {
-            color: #303030;
-            line-height: 1.5;
-            font-size: 0.95em;
-        }
-
-        .message-time {
-            font-size: 0.7em;
-            color: #667781;
-            text-align: right;
-            margin-top: 4px;
-        }
-
-        .message-label {
-            display: inline-block;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 0.75em;
-            font-weight: 600;
-            margin-left: auto;
+        .step-tag {
+            font-size: 0.4em;
+            padding: 4px 12px;
+            border: 1.5px solid #2c2c2c;
+            border-radius: 20px;
+            color: #2c2c2c;
+            font-weight: 500;
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
             transition: all 0.3s ease;
+            margin-top: 12px;
         }
 
-        .message-label.completed {
+        .step-tag.completed {
             background: transparent;
-            border: 2px solid #2D7A4F;
+            border-color: #2D7A4F;
             color: #2D7A4F;
         }
 
-        .examples-inline {
-            color: #888;
-            font-style: italic;
+        .step-tag.completed::before {
+            content: '✓ ';
+            color: #2D7A4F;
+            font-weight: 700;
+            margin-right: 3px;
         }
 
-        /* Typing indicator */
-        .typing-indicator {
-            display: none;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 14px;
-            background: white;
-            border-radius: 18px;
-            width: fit-content;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-        }
-
-        .typing-indicator.active {
-            display: flex;
-        }
-
-        .typing-text {
-            color: #667781;
+        .input-prefix {
+            color: #2c2c2c;
             font-size: 0.9em;
+            margin-top: 12px;
+            line-height: 1.4;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .input-examples {
+            font-size: 1.1em;
+            color: #4A90E2;
+            margin-top: 25px;
             font-style: italic;
+            line-height: 1.3;
+            text-align: center;
         }
 
-        .typing-dots {
-            display: flex;
-            align-items: center;
-            gap: 4px;
+        .lightbulb-icon {
+            font-style: normal;
+            color: #4A90E2;
         }
 
-        .typing-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #90949c;
-            animation: typing 1.4s infinite;
-        }
-
-        .typing-dot:nth-child(1) {
-            animation-delay: 0s;
-        }
-
-        .typing-dot:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .typing-dot:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-
-        @keyframes typing {
-            0%, 60%, 100% { transform: translateY(0); opacity: 0.7; }
-            30% { transform: translateY(-10px); opacity: 1; }
-        }
-
-        /* Mensaje de validación */
-        .validation-message {
-            color: #d14836;
-            font-size: 0.85em;
-            margin-top: 8px;
-            padding: 8px 12px;
-            background: #ffebee;
-            border-radius: 8px;
-            border-left: 3px solid #d14836;
-        }
-
-        /* Botones de elección */
-        .choice-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        .tip-container {
+            display: inline-block;
             margin-top: 15px;
-        }
-
-        .choice-btn {
-            padding: 12px 16px;
-            border: 2px solid #075e54;
-            background: white;
-            color: #075e54;
+            padding: 8px 12px;
+            border: 1.5px dashed #7BA8D1;
             border-radius: 12px;
-            font-size: 0.95em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: left;
+            font-size: 0.9em;
+            color: #7BA8D1;
+            background: transparent;
+            font-style: normal;
         }
 
-        .choice-btn:hover {
-            background: #075e54;
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        .tip-container strong {
+            font-weight: 700;
+            color: #3A7BC8;
         }
 
-        .choice-btn-description {
-            font-size: 0.85em;
-            font-weight: 400;
-            margin-top: 4px;
-            opacity: 0.8;
-        }
-
-        /* Input area */
-        .input-area {
-            background: #f0f0f0;
-            padding: 10px;
+        .enter-icon {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaaaaa;
+            font-size: 0.6em;
             display: flex;
-            gap: 10px;
             align-items: center;
-            border-top: 1px solid #ddd;
+            pointer-events: none;
+        }
+
+        .enter-icon.visible {
+            opacity: 1;
+        }
+
+        .enter-arrow {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #aaaaaa;
+            border-radius: 4px;
             position: relative;
+        }
+
+        .enter-arrow::before {
+            content: '↵';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+            color: #aaaaaa;
+        }
+
+        .user-input {
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            color: #2c2c2c;
+            font-family: inherit;
+            font-size: 0.8em;
+            min-width: 20px;
+            border-bottom: 2px solid #cccccc;
+            padding: 5px 5px 0px 5px;
+            padding-right: 35px; /* Espacio para el icono */
+            caret-color: #2c2c2c;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            resize: none;
+            overflow: hidden;
+            line-height: 1.4;
+            min-height: 1.4em;
+            vertical-align: baseline;
+            margin-top: 7px;
+        }
+
+        .editable-input {
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            color: #2c2c2c;
+            font-family: inherit;
+            font-size: 0.8em;
+            min-width: 20px;
+            border-bottom: 2px solid #4a90e2;
+            padding: 5px 5px 0px 5px;
+            caret-color: #2c2c2c;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            resize: none;
+            overflow: hidden;
+            line-height: 1.4;
+            min-height: 1.4em;
+            vertical-align: baseline;
+            margin-top: 7px;
+        }
+
+        .user-input::placeholder {
+            color: #aaaaaa;
+            font-size: 0.8em; /* Mismo tamaño que el texto ingresado */
         }
 
         .input-wrapper {
             flex: 1;
-            background: white;
-            border-radius: 24px;
-            padding: 10px 15px;
-            display: flex;
-            align-items: center;
+            min-width: 200px;
             position: relative;
+            display: flex;
+            align-items: flex-start;
         }
 
-        #messageInput {
-            flex: 1;
-            border: none;
-            outline: none;
-            font-size: 0.95em;
-            font-family: inherit;
+        /* Permitir que el input ocupe toda la línea si el contenido es muy largo */
+        @media (max-width: 768px) {
+            .input-wrapper {
+                flex-basis: 100%;
+            }
         }
 
-        .send-button {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: #075e54;
-            color: white;
-            border: none;
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .suggestions-container {
+            margin-top: 40px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            display: none; /* Desactivado temporalmente */
+        }
+
+        .suggestion-item {
+            background: #f5f5f5;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2em;
-            transition: all 0.2s;
+            transition: all 0.3s;
+            text-align: left;
+            font-size: 1em;
+            border: 2px solid #e0e0e0;
+            color: #4a4a4a;
         }
 
-        .send-button:hover {
-            background: #064e46;
-            transform: scale(1.05);
+        .suggestion-item:hover,
+        .suggestion-item.selected {
+            background: #e8e8e8;
+            border-color: #333333;
+            transform: translateX(10px);
         }
 
-        .send-button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: scale(1);
+        .suggestion-item-match {
+            font-weight: bold;
+            color: #000000;
         }
 
-        /* Confirmation screen */
-        .confirmation-screen {
-            display: none;
-            flex-direction: column;
-            gap: 12px;
-            padding: 15px;
-            background: #fff9e6;
-            border-radius: 8px;
-            margin: 10px 0;
-        }
-
-        .confirmation-screen.active {
-            display: flex;
-        }
-
-        .confirmation-title {
-            font-weight: 600;
-            color: #333;
-            font-size: 1.1em;
-            margin-bottom: 5px;
-        }
-
-        .confirmation-item {
-            padding: 8px 0;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .confirmation-item:last-child {
-            border-bottom: none;
-        }
-
-        .confirmation-label {
-            font-weight: 600;
-            color: #667eea;
-            font-size: 0.85em;
-        }
-
-        .confirmation-value {
-            color: #555;
-            margin-top: 3px;
-            font-size: 0.9em;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-        }
-
-        .action-btn {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .action-btn.primary {
-            background: #075e54;
-            color: white;
-        }
-
-        .action-btn.secondary {
-            background: #e0e0e0;
-            color: #333;
-        }
-
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        /* Result display */
-        .result-box {
-            background: white;
-            border: 2px solid #075e54;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 10px 0;
+        .result-container {
+            background: #f9f9f9;
+            padding: 30px;
+            border-radius: 12px;
+            margin-top: 40px;
+            text-align: left;
+            border: 2px solid #e0e0e0;
         }
 
         .result-title {
-            font-weight: 600;
-            color: #075e54;
-            margin-bottom: 10px;
-        }
-
-        .prompt-text {
-            color: #333;
-            line-height: 1.6;
-            font-size: 0.9em;
-            white-space: pre-line;
-        }
-
-        .copy-button {
-            background: #075e54;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            margin-top: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.85em;
-        }
-
-        .copy-button:hover {
-            background: #064e46;
-        }
-
-        /* Scrollbar styling */
-        .messages-area::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .messages-area::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .messages-area::-webkit-scrollbar-thumb {
-            background: #cccccc;
-            border-radius: 3px;
-        }
-
-        .messages-area::-webkit-scrollbar-thumb:hover {
-            background: #999999;
-        }
-
-        /* Autocomplete dropdown styles */
-        .autocomplete-dropdown {
-            position: absolute;
-            bottom: 100%;
-            left: 0;
-            right: 50px;
-            background: white;
-            border-radius: 12px 12px 0 0;
-            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
-            max-height: 250px;
-            overflow-y: auto;
-            display: none;
-            z-index: 1000;
-            margin-bottom: 0;
-        }
-
-        .autocomplete-dropdown.active {
-            display: block;
-        }
-
-        .autocomplete-item {
-            padding: 12px 16px;
-            cursor: pointer;
-            border-bottom: 1px solid #f0f0f0;
-            transition: background 0.2s;
-            font-size: 0.9em;
-        }
-
-        .autocomplete-item:last-child {
-            border-bottom: none;
-        }
-
-        .autocomplete-item:hover,
-        .autocomplete-item.selected {
-            background: #e8f5e9;
-        }
-
-        .autocomplete-item-text {
-            color: #333;
-            line-height: 1.4;
-        }
-
-        .autocomplete-item-match {
-            font-weight: 600;
-            color: #075e54;
-        }
-
-        .autocomplete-item-category {
-            font-size: 0.75em;
-            color: #667781;
-            margin-top: 4px;
-            font-style: italic;
-        }
-
-        .autocomplete-dropdown::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .autocomplete-dropdown::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .autocomplete-dropdown::-webkit-scrollbar-thumb {
-            background: #cccccc;
-            border-radius: 3px;
-        }
-
-        /* Tooltip styles */
-        .tooltip-container {
-            position: relative;
-            display: inline-block;
-            margin-left: 4px;
-            cursor: help;
-        }
-
-        .tooltip-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #128c7e;
-            color: white;
-            font-size: 11px;
+            font-size: 1.3em;
+            margin-bottom: 20px;
             font-weight: bold;
-            vertical-align: middle;
+            color: #2c2c2c;
         }
 
-        .tooltip-text {
-            visibility: hidden;
-            width: 280px;
-            background-color: #333;
-            color: #fff;
-            text-align: left;
-            border-radius: 6px;
-            padding: 10px;
-            position: absolute;
-            z-index: 1000;
-            top: 50%;
-            left: calc(100% + 8px);
-            transform: translateY(-50%);
-            opacity: 0;
-            transition: opacity 0.3s;
-            font-size: 0.85em;
-            line-height: 1.4;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        .result-prompt {
+            font-size: 1.1em;
+            line-height: 1.8;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 8px;
+            color: #2c2c2c;
+            border: 1px solid #d0d0d0;
         }
 
-        .tooltip-text::after {
-            content: "";
-            position: absolute;
-            top: 50%;
-            right: 100%;
-            margin-top: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: transparent #333 transparent transparent;
+        .button {
+            background: #ffffff;
+            border: 2px solid #333333;
+            color: #333333;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 5px;
         }
 
-        .tooltip-container:hover .tooltip-text {
-            visibility: visible;
-            opacity: 1;
+        .button:hover {
+            background: #333333;
+            color: #ffffff;
+            transform: translateY(-2px);
+        }
+
+        .hidden {
+            display: none;
         }
 
         /* Responsive */
-        @media (max-width: 600px) {
-            body {
-                padding: 0;
+        @media (max-width: 768px) {
+            .prompt-line {
+                font-size: 1.5em;
             }
 
-            .chat-container {
-                max-width: 100%;
-                height: 100vh;
-                border-radius: 0;
+            .suggestion-item {
+                font-size: 0.9em;
             }
+        }
 
-            .tooltip-text {
-                width: 220px;
-                left: auto;
-                right: -10px;
-                transform: translateY(-50%);
-            }
-
-            .tooltip-text::after {
-                right: auto;
-                left: 8px;
-                border-color: transparent transparent transparent #333;
+        @media (max-width: 480px) {
+            .prompt-line {
+                font-size: 1.2em;
             }
         }
     </style>
 </head>
 <body>
-    <div class="chat-container">
-        <!-- Header -->
-        <div class="chat-header">
-            <div class="agent-avatar">
-                <img src="avatar.jpg" alt="Mondriart">
-            </div>
-            <div class="agent-info">
-                <h2>Mondriart</h2>
-                <div class="agent-status">Prompt Artist v3.1</div>
-            </div>
+    <div class="container">
+        <!-- Marca -->
+        <div class="brand-mark">
+            <span class="step">step2</span><span class="prompt">prompt</span>
         </div>
 
-        <!-- Messages Area -->
-        <div class="messages-area" id="messagesArea">
-            <!-- Messages will be added here dynamically -->
-        </div>
+        <!-- Pregunta estática -->
+        <div class="static-question">¿Qué imagen quieres crear?</div>
 
-        <!-- Typing Indicator -->
-        <div class="typing-indicator" id="typingIndicator">
-            <span class="typing-text">Mondriart está escribiendo</span>
-            <div class="typing-dots">
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-            </div>
-        </div>
+        <!-- Texto acumulado -->
+        <div class="accumulated-text" id="accumulatedText"></div>
 
-        <!-- Input Area -->
-        <div class="input-area">
-            <!-- Autocomplete Dropdown -->
-            <div class="autocomplete-dropdown" id="autocompleteDropdown">
-                <!-- Sugerencias se agregan dinámicamente -->
-            </div>
-
+        <!-- Línea de input actual -->
+        <div class="input-line" id="inputLine">
+            <span class="step-tag" id="stepTag">SUJETO</span>
+            <span class="input-prefix">La imagen de</span>
             <div class="input-wrapper">
-                <input type="text" id="messageInput" placeholder="Escribe tu respuesta..." disabled>
+                <textarea class="user-input" id="userInput" autocomplete="off" spellcheck="false" placeholder="" rows="1"></textarea>
+                <div class="enter-icon" id="enterIcon">
+                    <span class="enter-arrow"></span>
+                </div>
             </div>
-            <button class="send-button" id="sendButton" disabled>
-                ➤
-            </button>
+        </div>
+
+        <!-- Ejemplos centralizados -->
+        <div class="input-examples" id="inputExamples">
+            <span class="lightbulb-icon">💡</span> una bailarina de ballet; un paisaje urbano; o un auto futurista...
+        </div>
+
+        <div class="suggestions-container" id="suggestionsContainer">
+            <!-- Sugerencias se insertan aquí -->
+        </div>
+
+
+        <div class="result-container hidden" id="resultContainer">
+            <div class="result-title">✨ Tu Prompt Generado</div>
+            <div class="result-prompt" id="resultPrompt"></div>
+            <button class="button" onclick="copyToClipboard()">📋 Copiar Prompt</button>
+            <button class="button" onclick="restart()">🔄 Crear Nuevo</button>
         </div>
     </div>
 
     <script>
-        // Estado de la conversación
-        let currentStep = 0;
-        let answers = {};
-        let subjectCategory = 'general';
+        // Estado global
+        let accumulatedContent = [];
+        let userTexts = []; // Solo el texto ingresado por el usuario, sin tags ni prefijos
         let selectedSuggestionIndex = -1;
         let currentSuggestions = [];
+        let wordCount = 0;
+        let currentStep = 0;
+        let subjectCategory = 'general'; // persona, paisaje, objeto, o general
 
-        // Banco de sugerencias contextual
-        const suggestionBank = {
-            sujeto: {
-                persona: [
-                    'una bailarina de ballet clásico',
-                    'una mujer joven en sus 20s',
-                    'un hombre de negocios ejecutivo',
-                    'una chef profesional',
-                    'un músico tocando guitarra',
-                    'una atleta corriendo',
-                    'un niño jugando',
-                    'una modelo posando',
-                    'un artista pintando',
-                    'una anciana sonriendo'
-                ],
-                paisaje: [
-                    'un paisaje urbano nocturno',
-                    'una playa al atardecer',
-                    'un bosque de pinos neblinoso',
-                    'una montaña nevada',
-                    'una calle de ciudad lluviosa',
-                    'un jardín japonés tranquilo',
-                    'un desierto árido',
-                    'un valle verde',
-                    'una cascada en la selva',
-                    'un parque en primavera'
-                ],
-                objeto: [
-                    'un auto deportivo rojo',
-                    'un reloj de lujo',
-                    'un teléfono móvil moderno',
-                    'una taza de café humeante',
-                    'unos zapatos deportivos',
-                    'una botella de vino',
-                    'un plato gourmet',
-                    'una cámara profesional',
-                    'un instrumento musical',
-                    'una joya elegante'
-                ],
-                general: [
-                    'una escena abstracta',
-                    'un concepto minimalista',
-                    'una composición geométrica',
-                    'un ambiente surrealista',
-                    'una textura orgánica'
-                ]
+        // Configuración de pasos del diálogo con ejemplos contextuales
+        const dialogSteps = [
+            {
+                tag: 'Sujeto',
+                prefix: 'La imagen de',
+                placeholder: '',
+                examples: '<span class="lightbulb-icon">💡</span> una bailarina de ballet; un paisaje urbano; o un auto futurista...<br><br><br><div class="tip-container">TIP: Uno o dos adjetivos serán suficientes.</div>'
             },
-            accion: {
-                persona: [
-                    'saltando en el aire con gracia',
-                    'posando elegantemente',
-                    'caminando con confianza',
-                    'mirando hacia la cámara',
-                    'en movimiento dinámico',
-                    'ejecutando una pirueta',
-                    'ajustándose el vestuario',
-                    'sonriendo naturalmente',
-                    'concentrado en su trabajo',
-                    'interactuando con el entorno'
-                ],
-                paisaje: [
-                    'bajo tormenta eléctrica',
-                    'en atardecer tranquilo',
-                    'con neblina densa envolvente',
-                    'iluminado por luz dorada',
-                    'en momento de calma',
-                    'con movimiento de nubes',
-                    'reflejándose en agua',
-                    'bañado por luz natural',
-                    'en transición de día a noche',
-                    'con elementos en movimiento'
-                ],
-                objeto: [
-                    'en reposo sobre superficie',
-                    'flotando en el espacio',
-                    'en movimiento dinámico',
-                    'con reflejos brillantes',
-                    'capturando la luz',
-                    'suspendido en el aire',
-                    'rotando lentamente',
-                    'en contexto de uso',
-                    'mostrando detalles',
-                    'interactuando con luz'
-                ],
-                general: [
-                    'en transformación',
-                    'en quietud absoluta',
-                    'con movimiento intenso',
-                    'evolucionando gradualmente',
-                    'en estado de flujo'
-                ]
-            },
-            entorno: {
-                persona: [
-                    'en un estudio fotográfico amplio y luminoso',
-                    'en un espacio urbano moderno',
-                    'en un lugar cerrado e íntimo',
-                    'en un ambiente natural abierto',
-                    'en una calle transitada de la ciudad',
-                    'en un escenario teatral',
-                    'en un espacio minimalista',
-                    'en un entorno industrial',
-                    'en una habitación elegante',
-                    'en un parque al aire libre'
-                ],
-                paisaje: [
-                    'con vista panorámica despejada',
-                    'en lugar concurrido',
-                    'en espacio natural abierto',
-                    'con elementos arquitectónicos',
-                    'en zona remota aislada',
-                    'con presencia humana sutil',
-                    'en entorno prístino',
-                    'con elementos urbanos integrados',
-                    'en horizonte infinito',
-                    'con profundidad de campo'
-                ],
-                objeto: [
-                    'sobre fondo minimalista',
-                    'en espacio abierto',
-                    'con ambiente de profundidad',
-                    'sobre superficie reflectante',
-                    'en contexto natural',
-                    'en entorno abstracto',
-                    'sobre pedestal elegante',
-                    'en espacio vacío',
-                    'con elementos complementarios',
-                    'en ambiente controlado'
-                ],
-                general: [
-                    'en ambiente urbano',
-                    'en espacio natural',
-                    'en entorno abstracto',
-                    'en dimensión conceptual',
-                    'en vacío atmosférico'
-                ]
-            },
-            estilo: [
-                'fotografía profesional con luz natural',
-                'ilustración digital colorida',
-                'render 3D hiperrealista',
-                'fotografía cinematográfica',
-                'estilo acuarela suave',
-                'arte digital conceptual',
-                'fotografía de producto comercial',
-                'ilustración vectorial moderna',
-                'pintura al óleo clásica',
-                'fotografía editorial de moda',
-                'estilo minimalista contemporáneo',
-                'render arquitectónico limpio',
-                'fotografía documental realista',
-                'arte generativo abstracto',
-                'estilo vintage retro'
-            ],
-            iluminacion: [
-                'con luz natural suave',
-                'con iluminación dramática',
-                'bajo golden hour',
-                'con luz de estudio profesional',
-                'con iluminación cinematográfica',
-                'bajo blue hour',
-                'con contraluz artístico',
-                'con luz difusa envolvente',
-                'con sombras marcadas',
-                'con iluminación de tres puntos',
-                'bajo luz de neón vibrante',
-                'con luz lateral direccional',
-                'en penumbra atmosférica',
-                'con iluminación natural indirecta',
-                'bajo luz cálida de atardecer'
-            ],
-            detalles: {
-                persona: [
-                    'con cabello recogido elegante',
-                    'vistiendo ropa deportiva moderna',
-                    'con expresión serena y confiada',
-                    'usando accesorios llamativos',
-                    'con maquillaje natural',
-                    'en vestimenta formal',
-                    'con gestos expresivos',
-                    'mostrando tatuajes artísticos',
-                    'con mirada penetrante',
-                    'en pose dinámica'
-                ],
-                paisaje: [
-                    'con neblina baja',
-                    'en colores cálidos vibrantes',
-                    'con texturas naturales ricas',
-                    'mostrando contraste de luces',
-                    'con elementos en primer plano',
-                    'en tonos fríos serenos',
-                    'con cielo dramático',
-                    'mostrando profundidad atmosférica',
-                    'con reflejos en agua',
-                    'en paleta monocromática'
-                ],
-                objeto: [
-                    'con reflejos metálicos brillantes',
-                    'en tonos oscuros elegantes',
-                    'con acabados pulidos',
-                    'mostrando textura detallada',
-                    'en colores vibrantes',
-                    'con transparencias sutiles',
-                    'en acabado mate',
-                    'mostrando desgaste vintage',
-                    'con detalles ornamentales',
-                    'en superficie brillante'
-                ],
-                general: [
-                    'con texturas particulares',
-                    'en paleta de colores específica',
-                    'con elementos destacados',
-                    'mostrando patrones geométricos',
-                    'en composición asimétrica'
-                ]
-            },
-            extras: [
-                'en orientación vertical',
-                'en orientación horizontal',
-                'con plano cerrado',
-                'con plano abierto',
-                'usando regla de los tercios',
-                'con enfoque selectivo',
-                'con bokeh en el fondo',
-                'en formato cuadrado',
-                'con composición centrada',
-                'en perspectiva angular',
-                'con profundidad de campo amplia',
-                'con desenfoque de movimiento',
-                'en alto contraste',
-                'con viñeteado sutil',
-                'en aspecto panorámico'
-            ]
-        };
-
-        // Preguntas adaptativas según contexto
-        const questionsTemplates = {
-            sujeto: {
-                label: 'Sujeto',
-                question: '<strong>¿Qué imagen quieres crear?</strong><br><span class="examples-inline">(Ej.: una bailarina de ballet, un paisaje urbano, un auto deportivo...)</span>',
-                key: 'sujeto'
-            },
-            accion: {
-                persona: {
-                    label: 'Acción',
-                    question: '<strong>¿Qué está haciendo?</strong><br><span class="examples-inline">(Ej.: saltando en el aire, posando elegantemente, ajustándose el vestuario...)</span>',
-                    key: 'accion'
-                },
-                paisaje: {
-                    label: 'Acción',
-                    question: '<strong>¿Qué está ocurriendo?</strong><br><span class="examples-inline">(Ej.: tormenta eléctrica en desarrollo, atardecer tranquilo, neblina densa envolvente...)</span>',
-                    key: 'accion'
-                },
-                objeto: {
-                    label: 'Acción',
-                    question: '<strong>¿En qué estado está?</strong><br><span class="examples-inline">(Ej.: en reposo sobre una superficie, en movimiento dinámico, flotando en el espacio...)</span>',
-                    key: 'accion'
-                },
-                general: {
-                    label: 'Acción',
-                    question: '<strong>¿Qué está pasando?</strong><br><span class="examples-inline">(Ej.: movimiento intenso, quietud absoluta, elementos en transformación...)</span>',
-                    key: 'accion'
+            {
+                tag: 'Acción',
+                prefix: 'Imagino que está',
+                placeholder: '',
+                examples: {
+                    persona: '<span class="lightbulb-icon">💡</span> sonriendo sutilmente; o disfrutando un café...<br><br><br><div class="tip-container">TIP: Piénsalo como "<strong>qué está haciendo o pasando</strong>". Será el motivo de la imagen.</div>',
+                    paisaje: '<span class="lightbulb-icon">💡</span> en un día soleado de verano; o cubierto de neblina matinal...<br><br><br><div class="tip-container">TIP: Piénsalo como "<strong>qué está haciendo o pasando</strong>". Será el motivo de la imagen.</div>',
+                    objeto: '<span class="lightbulb-icon">💡</span> sobre un mostrador; o suspendido en el aire...<br><br><br><div class="tip-container">TIP: Piénsalo como "<strong>qué está haciendo o pasando</strong>". Será el motivo de la imagen.</div>',
+                    general: '<span class="lightbulb-icon">💡</span> emitiendo luces brillantes; o levitando sobre el suelo...<br><br><br><div class="tip-container">TIP: Piénsalo como "<strong>qué está haciendo o pasando</strong>". Será el motivo de la imagen.</div>'
                 }
             },
-            entorno: {
-                persona: {
-                    label: 'Entorno',
-                    question: '<strong>¿Cómo visualizas el entorno?</strong><br><span class="examples-inline">(Ej.: espacio amplio y luminoso, lugar cerrado e íntimo, ambiente urbano transitado...)</span>',
-                    key: 'entorno'
-                },
-                paisaje: {
-                    label: 'Entorno',
-                    question: '<strong>¿Cómo es el lugar?</strong><br><span class="examples-inline">(Ej.: lugar concurrido, vista despejada, espacio natural abierto...)</span>',
-                    key: 'entorno'
-                },
-                objeto: {
-                    label: 'Entorno',
-                    question: '<strong>¿Qué hay alrededor?</strong><br><span class="examples-inline">(Ej.: fondo minimalista, espacio abierto, ambiente con profundidad...)</span>',
-                    key: 'entorno'
-                },
-                general: {
-                    label: 'Entorno',
-                    question: '<strong>¿Cómo te imaginas el entorno de la escena?</strong><br><span class="examples-inline">(Ej.: ambiente urbano, espacio natural, entorno abstracto...)</span>',
-                    key: 'entorno'
+            {
+                tag: 'Entorno',
+                prefix: 'El entorno es',
+                placeholder: '',
+                examples: {
+                    persona: '<span class="lightbulb-icon">💡</span> una terraza al aire libre; o una cómoda sala de estar...<br><br><br><div class="tip-container">TIP: Puedes usar un entorno que ya conozcas, que sirva como referencia concreta.</div>',
+                    paisaje: '<span class="lightbulb-icon">💡</span> tranquilo y natural; o distópico como Blade Runner...<br><br><br><div class="tip-container">TIP: Puedes usar un entorno que ya conozcas, que sirva como referencia concreta.</div>',
+                    objeto: '<span class="lightbulb-icon">💡</span> un escaparate iluminado; una sala de ventas; o una feria de tecnología...<br><br><br><div class="tip-container">TIP: Puedes usar un entorno que ya conozcas, que sirva como referencia concreta.</div>',
+                    general: '<span class="lightbulb-icon">💡</span> surrealista y abstracto; o tridimensional...<br><br><br><div class="tip-container">TIP: Puedes usar un entorno que ya conozcas, que sirva como referencia concreta.</div>'
                 }
             },
-            estilo: {
-                label: 'Estilo',
-                question: '<strong>¿Qué estilo te gustaría darle?</strong><br><span class="examples-inline">(Ej.: fotografía profesional con luz natural, ilustración digital colorida, render 3D hiperrealista...<span class="tooltip-container"><span class="tooltip-icon">i</span><span class="tooltip-text">Puedes incluir la luminosidad del día (blue hour), el tipo de cámara (Canon D5), la composición (regla de los tercios), etc.</span></span>)</span>',
-                key: 'estilo_iluminacion'
+            {
+                tag: 'Estilo',
+                prefix: 'Le daré un estilo de',
+                placeholder: '',
+                examples: '<span class="lightbulb-icon">💡</span> fotografía profesional; o ilustración digital colorida...<br><br><br><div class="tip-container">TIP: Puedes incluir datos técnicos (cámara reflex, plano abierto, plano medio, close-up...) o referencias de juegos, películas, artístas, etc.</div>'
             },
-            detalles: {
-                persona: {
-                    label: 'Detalles',
-                    question: '<strong>¿Qué características físicas destacan?</strong><br><span class="examples-inline">(Ej.: cabello recogido, vestuario de colores específicos, expresión particular...)</span>',
-                    key: 'detalles'
-                },
-                paisaje: {
-                    label: 'Detalles',
-                    question: '<strong>¿Qué elementos visuales destacan?</strong><br><span class="examples-inline">(Ej.: neblina baja, colores cálidos, texturas naturales...)</span>',
-                    key: 'detalles'
-                },
-                objeto: {
-                    label: 'Detalles',
-                    question: '<strong>¿Qué detalles del objeto resaltar?</strong><br><span class="examples-inline">(Ej.: reflejos metálicos, tonos o colores específicos, acabados pulidos...)</span>',
-                    key: 'detalles'
-                },
-                general: {
-                    label: 'Detalles',
-                    question: '<strong>¿Qué características específicas tendrá?</strong><br><span class="examples-inline">(Ej.: texturas particulares, paleta de colores, elementos destacados...)</span>',
-                    key: 'detalles'
+            {
+                tag: 'Iluminación',
+                prefix: 'y una iluminación',
+                placeholder: '',
+                examples: '<span class="lightbulb-icon">💡</span> natural con suaves sombras; dorada al atardecer; o de estudio profesional...<br><br><br><div class="tip-container">TIP: Funciona bien pensar en el momento del día, si es luz interior o exterior, fría o cálida, natural o artificial, etc.</div>'
+            },
+            {
+                tag: 'Detalles',
+                prefix: 'Finalmente, quiero destacar',
+                placeholder: '',
+                examples: {
+                    persona: '<span class="lightbulb-icon">💡</span> su cabello suelto y natural; su expresión serena y meditativa...<br><br><br><div class="tip-container">TIP: Acá puedes incluir cosas concretas que no quieres que falten. Lo más concreto y distintivo que acompañará al sujeto de la imagen.</div>',
+                    paisaje: '<span class="lightbulb-icon">💡</span> una paleta de colores cálidos; o colores saturados y vibrantes...<br><br><br><div class="tip-container">TIP: Acá puedes incluir cosas concretas que no quieres que falten. Lo más concreto y distintivo que acompañará al sujeto de la imagen.</div>',
+                    objeto: '<span class="lightbulb-icon">💡</span> acabados metálicos brillantes; o superficies mate elegantes...<br><br><br><div class="tip-container">TIP: Acá puedes incluir cosas concretas que no quieres que falten. Lo más concreto y distintivo que acompañará al sujeto de la imagen.</div>',
+                    general: '<span class="lightbulb-icon">💡</span> elementos decorativos en segundo plano; o texturas geométricas...<br><br><br><div class="tip-container">TIP: Acá puedes incluir cosas concretas que no quieres que falten. Lo más concreto y distintivo que acompañará al sujeto de la imagen.</div>'
                 }
             }
-        };
+        ];
 
-        // Función para detectar categoría del sujeto
+        // Banco de sugerencias - todas mezcladas para detección inteligente
+        const allSuggestions = [
+            // Sujetos
+            'una bailarina de ballet clásico',
+            'una mujer joven en sus 20s',
+            'un hombre de negocios ejecutivo',
+            'una chef profesional',
+            'un músico tocando guitarra',
+            'una atleta corriendo',
+            'un niño jugando',
+            'una modelo posando',
+            'un artista pintando',
+            'una anciana sonriendo',
+            // Acciones
+            'saltando en el aire con gracia',
+            'posando elegantemente',
+            'caminando con confianza',
+            'mirando hacia la cámara',
+            'en movimiento dinámico',
+            'ejecutando una pirueta',
+            'sonriendo naturalmente',
+            'concentrado en su trabajo',
+            // Entornos
+            'en un estudio fotográfico amplio',
+            'en un espacio urbano moderno',
+            'en un ambiente natural abierto',
+            'en una calle transitada',
+            'en un escenario teatral',
+            'en un espacio minimalista',
+            'en un parque al aire libre',
+            'en una habitación elegante',
+            // Estilos
+            'fotografía profesional con luz natural',
+            'ilustración digital colorida',
+            'render 3D hiperrealista',
+            'fotografía cinematográfica',
+            'estilo acuarela suave',
+            'fotografía de retrato',
+            'ilustración vectorial moderna',
+            'estilo minimalista contemporáneo',
+            // Detalles
+            'con cabello recogido elegante',
+            'vistiendo ropa deportiva',
+            'con expresión serena',
+            'usando accesorios llamativos',
+            'con maquillaje natural',
+            'en vestimenta formal',
+            'con gestos expresivos',
+            'con mirada penetrante',
+            'en pose dinámica'
+        ];
+
+        // Referencias DOM
+        const accumulatedText = document.getElementById('accumulatedText');
+        let userInput = document.getElementById('userInput');
+        let inputPrefix = document.querySelector('.input-prefix');
+        let stepTag = document.getElementById('stepTag');
+        const inputExamples = document.getElementById('inputExamples');
+        let enterIcon = document.getElementById('enterIcon');
+        const suggestionsContainer = document.getElementById('suggestionsContainer');
+        const resultContainer = document.getElementById('resultContainer');
+        const resultPrompt = document.getElementById('resultPrompt');
+
+        // Control de typing timeout
+        let typingTimer;
+        const typingDelay = 800; // ms después de parar de escribir
+
+        // Inicialización
+        window.addEventListener('load', () => {
+            updateInputForStep();
+            userInput.focus();
+        });
+
+        // Actualizar input según el paso actual
+        function updateInputForStep() {
+            const step = dialogSteps[currentStep];
+            if (step) {
+                stepTag.textContent = step.tag.toUpperCase();
+                inputPrefix.textContent = step.prefix;
+                userInput.placeholder = step.placeholder;
+
+                // Mostrar ejemplos contextuales según la categoría detectada
+                if (typeof step.examples === 'object') {
+                    inputExamples.innerHTML = step.examples[subjectCategory] || step.examples.general;
+                } else {
+                    inputExamples.innerHTML = step.examples;
+                }
+            }
+        }
+
+        // Auto-expandir textarea mientras el usuario escribe
+        function autoExpandTextarea() {
+            userInput.style.height = 'auto';
+            userInput.style.height = userInput.scrollHeight + 'px';
+        }
+
+        // Detectar categoría del sujeto
         function detectSubjectCategory(sujetoText) {
             const texto = sujetoText.toLowerCase();
 
             // Detectar persona/personaje
             const personaKeywords = ['persona', 'mujer', 'hombre', 'niño', 'niña', 'bailarina', 'bailarín',
-                                     'retrato', 'modelo', 'artista', 'atleta', 'profesional', 'anciano',
-                                     'joven', 'chef', 'músico', 'actor', 'actriz'];
+                                     'modelo', 'artista', 'atleta', 'profesional', 'anciano', 'anciana',
+                                     'joven', 'chef', 'músico', 'actor', 'actriz', 'retrato', 'humano'];
             if (personaKeywords.some(kw => texto.includes(kw))) {
                 return 'persona';
             }
@@ -976,7 +576,8 @@
             // Detectar paisaje/escena
             const paisajeKeywords = ['paisaje', 'ciudad', 'urbano', 'playa', 'montaña', 'bosque',
                                      'calle', 'parque', 'jardín', 'valle', 'desierto', 'océano',
-                                     'atardecer', 'amanecer', 'naturaleza', 'escena'];
+                                     'atardecer', 'amanecer', 'naturaleza', 'escena', 'horizonte',
+                                     'cielo', 'mar', 'río', 'lago', 'costa'];
             if (paisajeKeywords.some(kw => texto.includes(kw))) {
                 return 'paisaje';
             }
@@ -984,7 +585,8 @@
             // Detectar objeto/producto
             const objetoKeywords = ['coche', 'auto', 'reloj', 'producto', 'objeto', 'teléfono',
                                    'zapato', 'botella', 'comida', 'plato', 'joya', 'mueble',
-                                   'dispositivo', 'instrumento', 'herramienta', 'vehículo'];
+                                   'dispositivo', 'instrumento', 'herramienta', 'vehículo',
+                                   'máquina', 'edificio', 'estructura'];
             if (objetoKeywords.some(kw => texto.includes(kw))) {
                 return 'objeto';
             }
@@ -992,87 +594,33 @@
             return 'general';
         }
 
-        // Función para obtener la pregunta contextual
-        function getContextualQuestion(step) {
-            if (step === 0) {
-                return questionsTemplates.sujeto;
-            } else if (step === 1) {
-                return questionsTemplates.accion[subjectCategory];
-            } else if (step === 2) {
-                return questionsTemplates.entorno[subjectCategory];
-            } else if (step === 3) {
-                return questionsTemplates.estilo;
-            } else if (step === 4) {
-                return questionsTemplates.detalles[subjectCategory];
-            }
-        }
-
-        // Referencias DOM
-        const messagesArea = document.getElementById('messagesArea');
-        const messageInput = document.getElementById('messageInput');
-        const sendButton = document.getElementById('sendButton');
-        const typingIndicator = document.getElementById('typingIndicator');
-        const autocompleteDropdown = document.getElementById('autocompleteDropdown');
-
-        // ============================================
-        // SISTEMA DE AUTOCOMPLETADO
-        // ============================================
-
-        function getSuggestionsForCurrentStep() {
-            if (currentStep === 0) {
-                // Sujeto - mostrar todas las categorías inicialmente
-                return [
-                    ...suggestionBank.sujeto.persona,
-                    ...suggestionBank.sujeto.paisaje,
-                    ...suggestionBank.sujeto.objeto,
-                    ...suggestionBank.sujeto.general
-                ];
-            } else if (currentStep === 1) {
-                // Acción - basado en categoría detectada
-                return suggestionBank.accion[subjectCategory] || suggestionBank.accion.general;
-            } else if (currentStep === 2) {
-                // Entorno
-                return suggestionBank.entorno[subjectCategory] || suggestionBank.entorno.general;
-            } else if (currentStep === 3) {
-                // Estilo e iluminación combinados
-                return [...suggestionBank.estilo, ...suggestionBank.iluminacion];
-            } else if (currentStep === 4) {
-                // Detalles
-                return suggestionBank.detalles[subjectCategory] || suggestionBank.detalles.general;
-            } else if (currentStep === 6) {
-                // Extras (pregunta #6)
-                return suggestionBank.extras;
-            }
-            return [];
-        }
-
+        // Filtrar sugerencias basado en texto actual
         function filterSuggestions(query) {
             if (!query || query.length < 2) {
                 return [];
             }
 
-            const availableSuggestions = getSuggestionsForCurrentStep();
-            const lowerQuery = query.toLowerCase();
+            // Obtener últimas palabras escritas para contexto
+            const words = query.trim().split(/\s+/);
+            const lastWords = words.slice(-3).join(' ').toLowerCase();
 
-            // Filtrar sugerencias que contengan el texto escrito
-            const filtered = availableSuggestions.filter(suggestion =>
-                suggestion.toLowerCase().includes(lowerQuery)
+            const filtered = allSuggestions.filter(suggestion =>
+                suggestion.toLowerCase().includes(lastWords) ||
+                lastWords.split(/\s+/).some(word => suggestion.toLowerCase().includes(word))
             );
 
-            // Ordenar: primero las que empiezan con el query, luego las que lo contienen
             filtered.sort((a, b) => {
-                const aStartsWith = a.toLowerCase().startsWith(lowerQuery);
-                const bStartsWith = b.toLowerCase().startsWith(lowerQuery);
-
+                const aStartsWith = a.toLowerCase().startsWith(lastWords);
+                const bStartsWith = b.toLowerCase().startsWith(lastWords);
                 if (aStartsWith && !bStartsWith) return -1;
                 if (!aStartsWith && bStartsWith) return 1;
                 return 0;
             });
 
-            // Limitar a 8 sugerencias máximo
-            return filtered.slice(0, 8);
+            return filtered.slice(0, 6);
         }
 
+        // Highlight de coincidencias
         function highlightMatch(text, query) {
             if (!query) return text;
 
@@ -1086,701 +634,354 @@
             const match = text.substring(index, index + query.length);
             const after = text.substring(index + query.length);
 
-            return `${before}<span class="autocomplete-item-match">${match}</span>${after}`;
+            return `${before}<span class="suggestion-item-match">${match}</span>${after}`;
         }
 
+        // Renderizar sugerencias
         function renderSuggestions(suggestions, query) {
-            autocompleteDropdown.innerHTML = '';
+            suggestionsContainer.innerHTML = '';
 
             if (suggestions.length === 0) {
-                autocompleteDropdown.classList.remove('active');
                 return;
             }
 
             suggestions.forEach((suggestion, index) => {
                 const item = document.createElement('div');
-                item.className = 'autocomplete-item';
+                item.className = 'suggestion-item';
                 if (index === selectedSuggestionIndex) {
                     item.classList.add('selected');
                 }
 
-                const highlightedText = highlightMatch(suggestion, query);
-
-                item.innerHTML = `
-                    <div class="autocomplete-item-text">${highlightedText}</div>
-                `;
+                item.innerHTML = highlightMatch(suggestion, query);
 
                 item.addEventListener('click', () => {
                     selectSuggestion(suggestion);
                 });
 
-                autocompleteDropdown.appendChild(item);
+                suggestionsContainer.appendChild(item);
             });
 
-            autocompleteDropdown.classList.add('active');
             currentSuggestions = suggestions;
         }
 
+        // Seleccionar sugerencia - la agrega al texto actual
         function selectSuggestion(suggestion) {
-            messageInput.value = suggestion;
-            autocompleteDropdown.classList.remove('active');
+            const currentText = userInput.value.trim();
+
+            // Si hay texto, agregar la sugerencia
+            if (currentText) {
+                userInput.value = currentText + ', ' + suggestion;
+            } else {
+                userInput.value = suggestion;
+            }
+
+            suggestionsContainer.innerHTML = '';
             selectedSuggestionIndex = -1;
             currentSuggestions = [];
-            messageInput.focus();
+            userInput.focus();
+            updateWordCount();
         }
 
-        function handleAutocompleteKeydown(e) {
-            const isDropdownOpen = autocompleteDropdown.classList.contains('active');
+        // Actualizar contador de palabras
+        function updateWordCount() {
+            const text = (accumulatedContent.join(' ') + ' ' + userInput.value).trim();
+            wordCount = text.split(/\s+/).filter(w => w.length > 0).length;
+        }
 
-            if (!isDropdownOpen) return;
+        // Agregar fragmento al texto acumulado (presionando Enter)
+        function addFragment() {
+            const text = userInput.value.trim();
+            if (!text || text.length < 2) return;
 
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                selectedSuggestionIndex = Math.min(
-                    selectedSuggestionIndex + 1,
-                    currentSuggestions.length - 1
-                );
-                renderSuggestions(currentSuggestions, messageInput.value);
+            // Animar la reducción: hacer que la línea actual se encoja antes de moverse
+            const inputLine = document.getElementById('inputLine');
+            inputLine.style.fontSize = '1.3em';
 
-                // Scroll al elemento seleccionado
-                const selectedItem = autocompleteDropdown.querySelector('.autocomplete-item.selected');
-                if (selectedItem) {
-                    selectedItem.scrollIntoView({ block: 'nearest' });
+            setTimeout(() => {
+                // Construir línea completa con tag y prefix
+                const currentTag = dialogSteps[currentStep].tag.toUpperCase();
+                const currentPrefix = dialogSteps[currentStep].prefix;
+
+                // Agregar punto final a todas las líneas excepto "Estilo"
+                const punctuation = currentTag === 'ESTILO' ? '' : '.';
+                const fullLine = `<span class="step-tag completed">${currentTag}</span>${currentPrefix} ${text}${punctuation}`;
+
+                // Agregar al contenido acumulado (para visualización)
+                accumulatedContent.push(fullLine);
+
+                // Guardar solo el texto del usuario (sin tags ni prefijos)
+                userTexts.push(text);
+
+                // Detectar categoría del sujeto en el primer paso
+                if (currentStep === 0) {
+                    subjectCategory = detectSubjectCategory(text);
+                    console.log('Categoría detectada:', subjectCategory);
                 }
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                selectedSuggestionIndex = Math.max(selectedSuggestionIndex - 1, -1);
-                renderSuggestions(currentSuggestions, messageInput.value);
 
-                const selectedItem = autocompleteDropdown.querySelector('.autocomplete-item.selected');
-                if (selectedItem) {
-                    selectedItem.scrollIntoView({ block: 'nearest' });
+                // Actualizar visualización - cada línea en su propia línea
+                const lines = accumulatedContent.map(line => `<div>${line}</div>`).join('');
+                accumulatedText.innerHTML = lines;
+
+                // Avanzar al siguiente paso
+                currentStep++;
+
+                // Si llegamos al final de los pasos, mostrar opciones
+                if (currentStep >= dialogSteps.length) {
+                    showFinalOptions();
+                    return;
                 }
-            } else if (e.key === 'Enter') {
-                if (selectedSuggestionIndex >= 0) {
-                    e.preventDefault();
-                    selectSuggestion(currentSuggestions[selectedSuggestionIndex]);
-                }
-            } else if (e.key === 'Escape') {
-                e.preventDefault();
-                autocompleteDropdown.classList.remove('active');
+
+                // Restaurar tamaño grande para el siguiente input
+                inputLine.style.fontSize = '1.8em';
+
+                // Actualizar input para el nuevo paso
+                updateInputForStep();
+
+                // Limpiar input
+                userInput.value = '';
+                suggestionsContainer.innerHTML = '';
                 selectedSuggestionIndex = -1;
                 currentSuggestions = [];
-            } else if (e.key === 'Tab') {
-                if (selectedSuggestionIndex >= 0) {
-                    e.preventDefault();
-                    selectSuggestion(currentSuggestions[selectedSuggestionIndex]);
-                } else if (currentSuggestions.length > 0) {
-                    e.preventDefault();
-                    selectSuggestion(currentSuggestions[0]);
-                }
-            }
+
+                updateWordCount();
+                userInput.focus();
+            }, 300); // Dar tiempo para la animación de reducción
         }
 
-        function handleInputChange() {
-            const query = messageInput.value.trim();
-            const suggestions = filterSuggestions(query);
-            selectedSuggestionIndex = -1;
-            renderSuggestions(suggestions, query);
-        }
-
-        // ============================================
-        // FIN SISTEMA DE AUTOCOMPLETADO
-        // ============================================
-
-        // Funciones de utilidad
-        function scrollToBottom() {
-            messagesArea.scrollTop = messagesArea.scrollHeight;
-        }
-
-        function getCurrentTime() {
-            const now = new Date();
-            return now.getHours().toString().padStart(2, '0') + ':' +
-                   now.getMinutes().toString().padStart(2, '0');
-        }
-
-        function addMessage(content, isUser = false, hasLabel = false, label = '') {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isUser ? 'user' : 'agent'}`;
-
-            let messageHTML = '<div class="message-bubble">';
-
-            if (hasLabel) {
-                messageHTML += `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                    <div class="message-label" data-label="${label}">${label}</div>
-                </div>`;
-            }
-
-            messageHTML += `<div class="message-content">${content}</div>`;
-
-            messageHTML += `<div class="message-time">${getCurrentTime()}</div>`;
-            messageHTML += '</div>';
-
-            messageDiv.innerHTML = messageHTML;
-            messagesArea.appendChild(messageDiv);
-            scrollToBottom();
-
-            return messageDiv;
-        }
-
-        function showTyping() {
-            typingIndicator.classList.add('active');
-            scrollToBottom();
-        }
-
-        function hideTyping() {
-            typingIndicator.classList.remove('active');
-        }
-
-        function enableInput() {
-            messageInput.disabled = false;
-            sendButton.disabled = false;
-            messageInput.focus();
-        }
-
-        function disableInput() {
-            messageInput.disabled = true;
-            sendButton.disabled = true;
-        }
-
-        function askQuestion(index) {
-            if (index >= 5) {
-                // FASE 1.5: Analizar completitud antes de generar
-                const analysis = analyzeCompleteness();
-                console.log('Análisis de completitud:', analysis);
-
-                // Solo mostrar pregunta #6 si faltan 2 o más elementos importantes
-                if (analysis.missing.length >= 2) {
-                    showTyping();
-                    setTimeout(() => {
-                        hideTyping();
-                        const questionMessage = `
-                            <strong>¿Quieres agregar algo más?</strong>
-                            <div style="margin-top: 12px;">
-                                <button class="choice-btn" onclick="generatePromptDirectly()" style="width: 100%; margin-bottom: 10px;">
-                                    ✨ Generar prompt tal como está
-                                </button>
-                            </div>
-                        `;
-                        addMessage(questionMessage, false, true, 'Extras');
-
-                        // Marcar que estamos en pregunta 6
-                        currentStep = 6;
-                        enableInput();
-                    }, 700);
-                } else {
-                    // Generar directamente si está completo o solo falta 1 elemento
-                    generatePrompt();
-                }
-                return;
-            }
-
-            const q = getContextualQuestion(index);
-
-            showTyping();
-            setTimeout(() => {
-                hideTyping();
-                addMessage(q.question, false, true, q.label);
-                enableInput();
-            }, 700);
-        }
-
-        function validateResponse(text) {
-            const words = text.trim().split(/\s+/).filter(w => w.length > 0);
-
-            if (words.length < 2) {
-                return {
-                    valid: false,
-                    message: 'Tu respuesta es muy breve. Intenta dar más detalles para un mejor resultado (al menos 2-3 palabras).'
-                };
-            }
-
-            return { valid: true };
-        }
-
-        // FASE 1.5: Análisis de completitud del prompt
-        function analyzeCompleteness() {
-            const analysis = {
-                hasStyle: false,
-                hasLighting: false,
-                hasColors: false,
-                hasComposition: false,
-                hasMood: false
-            };
-
-            // Analizar todas las respuestas juntas
-            const allText = Object.values(answers).join(' ').toLowerCase();
-
-            // Detectar estilo
-            const styleKeywords = ['fotografía', 'foto', 'ilustración', 'ilustrado', 'render', '3d', 'pintura', 'digital', 'acuarela', 'óleo', 'dibujo', 'arte'];
-            analysis.hasStyle = styleKeywords.some(kw => allText.includes(kw));
-
-            // Detectar iluminación
-            const lightKeywords = ['luz', 'iluminación', 'iluminado', 'iluminada', 'oscuro', 'brillante', 'amanecer', 'atardecer', 'noche', 'día', 'sombra', 'reflejo', 'dorada', 'suave', 'dramática'];
-            analysis.hasLighting = lightKeywords.some(kw => allText.includes(kw));
-
-            // Detectar colores
-            const colorKeywords = ['rojo', 'azul', 'verde', 'amarillo', 'negro', 'blanco', 'dorado', 'plateado', 'coral', 'turquesa', 'color', 'colores', 'tono', 'tonos', 'paleta', 'cálido', 'frío', 'vibrante'];
-            analysis.hasColors = colorKeywords.some(kw => allText.includes(kw));
-
-            // Detectar composición
-            const compositionKeywords = ['fondo', 'primer plano', 'encuadre', 'ángulo', 'perspectiva', 'desenfoque', 'bokeh', 'profundidad', 'campo'];
-            analysis.hasComposition = compositionKeywords.some(kw => allText.includes(kw));
-
-            // Detectar mood/atmósfera
-            const moodKeywords = ['dramático', 'sereno', 'alegre', 'melancólico', 'misterioso', 'vibrante', 'tranquilo', 'energético', 'atmósfera', 'mood', 'ambiente'];
-            analysis.hasMood = moodKeywords.some(kw => allText.includes(kw));
-
-            // Identificar qué falta
-            const missing = [];
-            if (!analysis.hasStyle) missing.push('estilo artístico');
-            if (!analysis.hasLighting) missing.push('iluminación');
-            if (!analysis.hasColors) missing.push('colores específicos');
-            if (!analysis.hasComposition) missing.push('encuadre de la imagen');
-            if (!analysis.hasMood) missing.push('una atmósfera particular');
-
-            return {
-                complete: missing.length === 0,
-                missing: missing,
-                analysis: analysis
-            };
-        }
-
-        function showDetailedResponseOptions(fullDescription) {
-            const optionsMessage = `
-                <div style="margin-bottom: 10px;">
-                    Veo que diste bastante información detallada. ¿Cómo prefieres continuar?
-                </div>
-                <div class="choice-buttons">
-                    <button class="choice-btn" onclick="continueGuidedFlow()">
-                        📝 Guíame con preguntas
-                        <div class="choice-btn-description">Te haré preguntas específicas para refinar cada aspecto</div>
-                    </button>
-                    <button class="choice-btn" onclick="tryGenerateDirectly()">
-                        ⚡ Genera el prompt ahora
-                        <div class="choice-btn-description">Intentaré crear el prompt con la información que diste</div>
-                    </button>
+        // Mostrar opciones finales antes de generar
+        function showFinalOptions() {
+            const inputLine = document.getElementById('inputLine');
+            inputLine.innerHTML = `
+                <div style="display: flex; gap: 10px; width: 100%;">
+                    <button class="button" onclick="generatePrompt()" style="flex: 1;">✨ Generar Prompt</button>
+                    <button class="button" onclick="editPrompt()" style="flex: 1;">✏️ Editar</button>
                 </div>
             `;
 
-            addMessage(optionsMessage, false);
+            // Ocultar los ejemplos cuando se muestran las opciones finales
+            const inputExamples = document.getElementById('inputExamples');
+            inputExamples.style.display = 'none';
         }
 
-        // FASE 1.5: Pregunta condicional #6
-        function generatePromptDirectly() {
-            // Ocultar botón
-            const buttons = document.querySelectorAll('.choice-btn');
-            buttons.forEach(b => b.style.display = 'none');
+        // Permitir editar todos los pasos
+        function editPrompt() {
+            if (userTexts.length === 0) return;
 
-            // Deshabilitar input
-            disableInput();
+            // Limpiar el área de texto acumulado
+            accumulatedText.innerHTML = '';
 
-            // Agregar respuesta del usuario
-            addMessage('Generar prompt tal como está', true);
+            // Crear un contenedor para todos los inputs editables
+            let editableHTML = '';
 
-            showTyping();
-            setTimeout(() => {
-                hideTyping();
-                addMessage("Perfecto, voy a crear tu prompt...", false);
-
-                setTimeout(() => {
-                    generatePrompt();
-                }, 800);
-            }, 600);
-        }
-
-        function continueGuidedFlow() {
-            // Ocultar botones
-            const buttons = document.querySelectorAll('.choice-buttons');
-            buttons.forEach(b => b.style.display = 'none');
-
-            // Agregar respuesta del usuario como si hubiera elegido
-            addMessage('Prefiero el flujo guiado', true);
-
-            showTyping();
-            setTimeout(() => {
-                hideTyping();
-                addMessage("Perfecto, entonces vamos paso a paso para refinar cada detalle. Ahora...", false);
-
-                // Continuar con la siguiente pregunta
-                currentStep++;
-                setTimeout(() => {
-                    askQuestion(currentStep);
-                }, 400);
-            }, 600);
-        }
-
-        function tryGenerateDirectly() {
-            // Ocultar botones
-            const buttons = document.querySelectorAll('.choice-buttons');
-            buttons.forEach(b => b.style.display = 'none');
-
-            // Agregar respuesta del usuario
-            addMessage('Genera el prompt ahora', true);
-
-            showTyping();
-            setTimeout(() => {
-                hideTyping();
-                addMessage("✨ Perfecto, voy a analizar tu descripción y crear el prompt...", false);
-
-                // Generar prompt directamente desde la descripción completa
-                setTimeout(() => {
-                    generatePromptFromFullDescription();
-                }, 800);
-            }, 600);
-        }
-
-        function generatePromptFromFullDescription() {
-            // Usar la descripción completa del sujeto como base
-            const fullDescription = answers.sujeto;
-
-            // CORRECCIÓN ORTOGRÁFICA: Aplicar antes de capitalizar
-            const descripcionCorregida = correctSpelling(fullDescription);
-
-            // Capitalizar inicio del prompt (reglas del castellano)
-            const promptCapitalizado = descripcionCorregida.charAt(0).toUpperCase() + descripcionCorregida.slice(1);
-
-            // El prompt es la descripción refinada en estilo narrativo Nanobanana
-            // Mayúscula después de punto
-            const prompt = `${promptCapitalizado}. Imagen de alta calidad con atención a los detalles sutiles, composición profesional y atmósfera envolvente.`;
-
-            const resultHTML = `
-                <div class="result-title">✨ Tu Prompt Generado</div>
-                <div class="result-box">
-                    <div class="prompt-text">${prompt}</div>
-                    <div style="margin-top: 12px; font-size: 0.85em; color: #667781; font-style: italic;">
-                        Optimizado para Nanobanana/Gemini • También funciona en DALL-E y otros modelos
-                    </div>
-                    <button class="copy-button" onclick="copyPrompt()">📋 Copiar Prompt</button>
-                </div>
-                <div style="margin-top: 15px; text-align: center;">
-                    <button class="copy-button" onclick="location.reload()" style="background: #667781;">🔄 Crear Otro Prompt</button>
-                </div>
-            `;
-
-            showTyping();
-            setTimeout(() => {
-                hideTyping();
-                addMessage(resultHTML, false);
-            }, 1000);
-        }
-
-        function markLabelAsCompleted(labelText) {
-            const allLabels = document.querySelectorAll('.message-label');
-            allLabels.forEach(label => {
-                if (label.getAttribute('data-label') === labelText) {
-                    label.classList.add('completed');
-                }
-            });
-        }
-
-        function showValidationMessage(message) {
-            const existingValidation = document.querySelector('.validation-message');
-            if (existingValidation) {
-                existingValidation.remove();
-            }
-
-            const inputArea = document.querySelector('.input-area');
-            const validationDiv = document.createElement('div');
-            validationDiv.className = 'validation-message';
-            validationDiv.textContent = message;
-            inputArea.parentNode.insertBefore(validationDiv, inputArea);
-
-            setTimeout(() => {
-                validationDiv.style.transition = 'opacity 0.3s';
-                validationDiv.style.opacity = '0';
-                setTimeout(() => validationDiv.remove(), 300);
-            }, 3000);
-        }
-
-        function handleUserResponse() {
-            const userAnswer = messageInput.value.trim();
-
-            if (!userAnswer) {
-                return;
-            }
-
-            // Validar longitud de respuesta
-            const validation = validateResponse(userAnswer);
-            if (!validation.valid) {
-                showValidationMessage(validation.message);
-                return;
-            }
-
-            // Agregar respuesta del usuario
-            addMessage(userAnswer, true);
-
-            // Marcar el label de la pregunta anterior como completado
-            const currentQuestion = getContextualQuestion(currentStep);
-            if (currentQuestion) {
-                markLabelAsCompleted(currentQuestion.label);
-            }
-
-            // Guardar respuesta
-            if (currentStep === 6) {
-                // Pregunta #6 especial (extras)
-                answers.extras = userAnswer;
-            } else {
-                // Preguntas normales (0-4)
-                answers[currentQuestion.key] = userAnswer;
-            }
-
-            // Detectar categoría después de la primera respuesta (sujeto)
-            if (currentStep === 0) {
-                subjectCategory = detectSubjectCategory(userAnswer);
-                console.log('Categoría detectada:', subjectCategory);
-
-                // FASE 1: Detección simple de respuestas largas
-                const wordCount = userAnswer.split(/\s+/).filter(w => w.length > 0).length;
-                if (wordCount > 20) {
-                    // Limpiar input
-                    messageInput.value = '';
-                    disableInput();
-
-                    // Mostrar opciones
-                    showTyping();
-                    setTimeout(() => {
-                        hideTyping();
-                        showDetailedResponseOptions(userAnswer);
-                    }, 600);
-                    return; // Detener flujo normal
-                }
-            }
-
-            // Limpiar input
-            messageInput.value = '';
-            disableInput();
-
-            // FASE 1.5: Manejar respuesta de pregunta #6 (extras)
-            if (currentStep === 6) {
-                showTyping();
-                setTimeout(() => {
-                    hideTyping();
-                    addMessage("✨ Genial, ahora sí tenemos todo. Voy a crear tu prompt...", false);
-
-                    setTimeout(() => {
-                        generatePrompt();
-                    }, 800);
-                }, 600);
-                return;
-            }
-
-            // Comentario contextual del agente según la pregunta actual
-            const contextualComments = [
-                "Perfecto, ese será el elemento principal de tu imagen. Ahora...",
-                "Entendido, esto ayudará a determinar la actividad de la escena. Siguiente...",
-                "Genial, ya tengo el contexto espacial. Continuemos...",
-                "Excelente, eso define el mood y la estética visual. Y por último...",
-                "✨ Perfecto, con esos detalles completamos tu visión. Dame un momento para crear tu prompt..."
-            ];
-            const contextualComment = contextualComments[currentStep];
-
-            showTyping();
-            setTimeout(() => {
-                hideTyping();
-                addMessage(contextualComment, false);
-
-                // Siguiente pregunta
-                currentStep++;
-                setTimeout(() => {
-                    askQuestion(currentStep);
-                }, 400);
-            }, 600);
-        }
-
-
-        function parseEstiloIluminacion(text) {
-            const lowerText = text.toLowerCase();
-            let estilo = text;
-            let iluminacion = "iluminación natural";
-
-            // Intentar separar estilo e iluminación si menciona palabras clave
-            if (lowerText.includes('luz') || lowerText.includes('iluminación') || lowerText.includes('iluminado')) {
-                // Buscar separadores comunes: "con", "y", ","
-                const separatorMatch = text.match(/(.+?)\s+(con|y|,)\s+(.+)/i);
-                if (separatorMatch) {
-                    estilo = separatorMatch[1].trim();
-                    iluminacion = separatorMatch[3].trim();
-                } else {
-                    // Si menciona luz pero no hay separador claro, todo es iluminación
-                    iluminacion = text;
-
-                    // Inferir estilo básico si menciona fotografía/ilustración/render
-                    if (lowerText.includes('fotograf')) {
-                        estilo = "fotografía";
-                    } else if (lowerText.includes('ilustr')) {
-                        estilo = "ilustración";
-                    } else if (lowerText.includes('render') || lowerText.includes('3d')) {
-                        estilo = "render 3D";
-                    } else {
-                        estilo = "imagen";
-                    }
-                }
-            } else {
-                // No menciona iluminación explícitamente
-                // Solo usar el texto como estilo, iluminación queda genérica
-                estilo = text;
-                iluminacion = "iluminación natural";
-            }
-
-            return { estilo, iluminacion };
-        }
-
-        // Función de corrección ortográfica automática
-        function correctSpelling(text) {
-            if (!text) return text;
-
-            // Diccionario de correcciones de tildes más comunes
-            const accentCorrections = {
-                // Palabras comunes
-                'acion': 'acción', 'camara': 'cámara', 'musica': 'música', 'fotografia': 'fotografía',
-                'fotográfica': 'fotográfica', 'fotografico': 'fotográfico', 'clasico': 'clásico',
-                'dramatico': 'dramático', 'magico': 'mágico', 'mistico': 'místico', 'dinamico': 'dinámico',
-                'estatico': 'estático', 'energico': 'enérgico', 'melancolico': 'melancólico',
-                'cinematografico': 'cinematográfico', 'atmosfera': 'atmósfera', 'estetico': 'estético',
-                // Adjetivos
-                'rapido': 'rápido', 'rapida': 'rápida', 'suave': 'suave', 'intima': 'íntima', 'intimo': 'íntimo',
-                'util': 'útil', 'facil': 'fácil', 'dificil': 'difícil', 'arido': 'árido', 'arida': 'árida',
-                'solido': 'sólido', 'solida': 'sólida', 'liquido': 'líquido', 'liquida': 'líquida',
-                'calido': 'cálido', 'calida': 'cálida', 'humedo': 'húmedo', 'humeda': 'húmeda',
-                'arido': 'árido', 'rigido': 'rígido', 'rigida': 'rígida', 'timido': 'tímido', 'timida': 'tímida',
-                // Acciones y verbos
-                'esta': 'está', 'estas': 'estás', 'estan': 'están', 'estaba': 'estaba', 'estaran': 'estarán',
-                'sera': 'será', 'seran': 'serán', 'hara': 'hará', 'haran': 'harán',
-                'camina': 'camina', 'caminando': 'caminando', 'saltando': 'saltando',
-                'corriendo': 'corriendo', 'bailando': 'bailando', 'volando': 'volando',
-                // Lugares y espacios
-                'edificio': 'edificio', 'jardin': 'jardín', 'salon': 'salón', 'habitacion': 'habitación',
-                'ático': 'ático', 'atico': 'ático', 'sotano': 'sótano', 'almacen': 'almacén',
-                'arbol': 'árbol', 'arboles': 'árboles', 'cesped': 'césped', 'avion': 'avión',
-                // Colores y tonos
-                'palido': 'pálido', 'palida': 'pálida', 'vivido': 'vívido', 'vivida': 'vívida',
-                'solido': 'sólido', 'metalico': 'metálico', 'metalica': 'metálica',
-                // Iluminación
-                'iluminacion': 'iluminación', 'lampara': 'lámpara', 'neon': 'neón',
-                'opaco': 'opaco', 'opaca': 'opaca', 'brillante': 'brillante', 'lucido': 'lúcido',
-                // Tiempo
-                'dia': 'día', 'manana': 'mañana', 'mediodia': 'mediodía', 'despues': 'después',
-                'proximo': 'próximo', 'proxima': 'próxima', 'ultimo': 'último', 'ultima': 'última',
-                // Emociones y estados
-                'alegria': 'alegría', 'melancolia': 'melancolía', 'armonia': 'armonía',
-                'pasion': 'pasión', 'emocion': 'emoción', 'tension': 'tensión', 'ilusion': 'ilusión',
-                // Técnicas y estilos
-                'oleo': 'óleo', 'lapiz': 'lápiz', 'acrilico': 'acrílico', 'grafico': 'gráfico',
-                'simetria': 'simetría', 'geometria': 'geometría', 'optica': 'óptica', 'optico': 'óptico',
-                // Naturaleza
-                'oceano': 'océano', 'rio': 'río', 'montana': 'montaña', 'volcan': 'volcán',
-                'huracan': 'huracán', 'relampago': 'relámpago', 'petalos': 'pétalos', 'petalo': 'pétalo',
-                // Personas
-                'nino': 'niño', 'nina': 'niña', 'joven': 'joven', 'anciano': 'anciano', 'mujer': 'mujer',
-                'musico': 'músico', 'medico': 'médico', 'heroe': 'héroe', 'heroina': 'heroína',
-                // Objetos
-                'vehiculo': 'vehículo', 'helicoptero': 'helicóptero', 'telefono': 'teléfono',
-                'movil': 'móvil', 'portatil': 'portátil', 'comoda': 'cómoda', 'lampara': 'lámpara',
-                // Texturas y materiales
-                'aspero': 'áspero', 'aspera': 'áspera', 'poliester': 'poliéster', 'plastico': 'plástico',
-                // Otros
-                'mas': 'más', 'detras': 'detrás', 'tambien': 'también', 'ademas': 'además',
-                'asi': 'así', 'aca': 'acá', 'alla': 'allá', 'alla': 'allá', 'aqui': 'aquí', 'ahi': 'ahí',
-                'tu': 'tú', 'mi': 'mí', 'si': 'sí', 'te': 'té', 'el': 'él', 'solo': 'solo', 'aun': 'aún'
-            };
-
-            // Aplicar correcciones palabra por palabra
-            let correctedText = text;
-
-            // Usar límites de palabra para evitar correcciones parciales
-            Object.keys(accentCorrections).forEach(wrong => {
-                const correct = accentCorrections[wrong];
-                // Crear regex con límites de palabra
-                const regex = new RegExp('\\b' + wrong + '\\b', 'gi');
-                correctedText = correctedText.replace(regex, correct);
-            });
-
-            return correctedText;
-        }
-
-        function generatePrompt() {
-            showTyping();
-
-            setTimeout(() => {
-                hideTyping();
-
-                // CORRECCIÓN ORTOGRÁFICA: Aplicar a todas las respuestas
-                const sujetoCorregido = correctSpelling(answers.sujeto);
-                const accionCorregida = correctSpelling(answers.accion);
-                const detallesCorregidos = correctSpelling(answers.detalles);
-                const entornoCorregido = correctSpelling(answers.entorno);
-                const estiloCorregido = correctSpelling(answers.estilo_iluminacion);
-                const extrasCorregidas = answers.extras ? correctSpelling(answers.extras) : null;
-
-                const { estilo, iluminacion } = parseEstiloIluminacion(estiloCorregido);
-
-                // Generar prompt estilo Nanobanana: narrativa fluida en español
-                // Asegurar capitalización correcta según reglas del castellano
-
-                // Capitalizar inicio del prompt (sujeto - después de nada = mayúscula)
-                const sujetoCapitalizado = sujetoCorregido.charAt(0).toUpperCase() + sujetoCorregido.slice(1);
-
-                // Minúscula para acción (va después del sujeto, sin punto previo)
-                const accionMinuscula = accionCorregida.charAt(0).toLowerCase() + accionCorregida.slice(1);
-
-                // Minúscula para detalles (va después de coma)
-                const detallesMinuscula = detallesCorregidos.charAt(0).toLowerCase() + detallesCorregidos.slice(1);
-
-                // Minúscula para entorno (va después de "en", sin punto previo)
-                const entornoMinuscula = entornoCorregido.charAt(0).toLowerCase() + entornoCorregido.slice(1);
-
-                // Capitalizar después de punto (estilo)
-                const estiloCapitalizado = estilo.charAt(0).toUpperCase() + estilo.slice(1);
-
-                // Minúscula para iluminación (va después de "con")
-                const iluminacionMinuscula = iluminacion.charAt(0).toLowerCase() + iluminacion.slice(1);
-
-                // Construir prompt narrativo con ortografía correcta
-                // Mayúsculas después de punto, minúsculas en otros contextos
-                let prompt = `${sujetoCapitalizado} ${accionMinuscula}, con ${detallesMinuscula}. La escena se desarrolla en ${entornoMinuscula}. ${estiloCapitalizado} con ${iluminacionMinuscula}`;
-
-                // FASE 1.5: Agregar información extra si existe (de pregunta #6)
-                if (extrasCorregidas) {
-                    // Capitalizar primera letra de extras si no empieza con minúscula intencionalmente
-                    const extrasMinuscula = extrasCorregidas.charAt(0).toLowerCase() + extrasCorregidas.slice(1);
-                    prompt += `, ${extrasMinuscula}`;
-                }
-
-                // Cierre natural del prompt
-                prompt += `.`;
-
-                const resultHTML = `
-                    <div class="result-title">✨ Tu Prompt Generado</div>
-                    <div class="result-box">
-                        <div class="prompt-text">${prompt}</div>
-                        <div style="margin-top: 12px; font-size: 0.85em; color: #667781; font-style: italic;">
-                            Optimizado para Nanobanana/Gemini • También funciona en DALL-E y otros modelos
+            userTexts.forEach((text, index) => {
+                const step = dialogSteps[index];
+                editableHTML += `
+                    <div class="input-line" style="font-size: 1.3em; margin-bottom: 15px;">
+                        <span class="step-tag completed">${step.tag.toUpperCase()}</span>
+                        <span class="input-prefix">${step.prefix}</span>
+                        <div class="input-wrapper">
+                            <textarea class="editable-input" data-index="${index}" autocomplete="off" spellcheck="false" rows="1">${text}</textarea>
                         </div>
-                        <button class="copy-button" onclick="copyPrompt()">📋 Copiar Prompt</button>
-                    </div>
-                    <div style="margin-top: 15px;">
-                        <button class="action-btn primary" onclick="restart()" style="width: 100%;">Crear Nuevo Prompt</button>
                     </div>
                 `;
+            });
 
-                const messageDiv = document.createElement('div');
-                messageDiv.className = 'message agent';
-                messageDiv.innerHTML = `
-                    <div class="message-bubble" style="max-width: 90%;">
-                        ${resultHTML}
-                    </div>
-                `;
+            // Mostrar todos los inputs editables en el área acumulada
+            accumulatedText.innerHTML = editableHTML;
 
-                messagesArea.appendChild(messageDiv);
-                scrollToBottom();
+            // Ocultar el input line original y los ejemplos
+            const inputLine = document.getElementById('inputLine');
+            inputLine.style.display = 'none';
+            inputExamples.style.display = 'none';
 
-                // Guardar el prompt generado
-                window.generatedPrompt = prompt;
-            }, 1500);
+            // Auto-expandir todos los textareas editables
+            document.querySelectorAll('.editable-input').forEach(textarea => {
+                textarea.style.height = 'auto';
+                textarea.style.height = textarea.scrollHeight + 'px';
+
+                // Event listener para auto-expandir mientras editan
+                textarea.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = this.scrollHeight + 'px';
+                });
+            });
+
+            // Cambiar los botones a "Guardar Cambios" y "Cancelar"
+            inputLine.innerHTML = `
+                <div style="display: flex; gap: 10px; width: 100%;">
+                    <button class="button" onclick="saveEdits()" style="flex: 1;">✅ Guardar Cambios</button>
+                    <button class="button" onclick="cancelEdits()" style="flex: 1;">❌ Cancelar</button>
+                </div>
+            `;
+            inputLine.style.display = 'flex';
+
+            // Hacer focus en el primer input
+            const firstInput = document.querySelector('.editable-input');
+            if (firstInput) firstInput.focus();
         }
 
-        function copyPrompt() {
+        // Guardar las ediciones
+        function saveEdits() {
+            // Recopilar todos los valores editados
+            const editedInputs = document.querySelectorAll('.editable-input');
+            userTexts = [];
+            accumulatedContent = [];
+
+            editedInputs.forEach((textarea, index) => {
+                const text = textarea.value.trim();
+                if (text) {
+                    userTexts.push(text);
+
+                    // Reconstruir el contenido acumulado con los nuevos valores
+                    const step = dialogSteps[index];
+                    const currentTag = step.tag.toUpperCase();
+                    const punctuation = currentTag === 'ESTILO' ? '' : '.';
+                    const fullLine = `<span class="step-tag completed">${currentTag}</span>${step.prefix} ${text}${punctuation}`;
+                    accumulatedContent.push(fullLine);
+                }
+            });
+
+            // Volver a mostrar las opciones finales
+            showFinalOptions();
+
+            // Actualizar visualización del texto acumulado
+            const lines = accumulatedContent.map(line => `<div>${line}</div>`).join('');
+            accumulatedText.innerHTML = lines;
+        }
+
+        // Cancelar ediciones
+        function cancelEdits() {
+            // Restaurar visualización sin cambios
+            const lines = accumulatedContent.map(line => `<div>${line}</div>`).join('');
+            accumulatedText.innerHTML = lines;
+
+            // Volver a mostrar las opciones finales
+            showFinalOptions();
+        }
+
+        // Re-adjuntar event listeners después de editar
+        function reattachEventListeners() {
+            // Clonar y reemplazar el textarea para eliminar event listeners anteriores
+            const oldUserInput = userInput;
+            const newUserInput = oldUserInput.cloneNode(true);
+            oldUserInput.parentNode.replaceChild(newUserInput, oldUserInput);
+
+            // Actualizar la referencia global
+            userInput = newUserInput;
+
+            userInput.addEventListener('input', () => {
+                autoExpandTextarea();
+                updateWordCount();
+                enterIcon.classList.remove('visible');
+                clearTimeout(typingTimer);
+                if (userInput.value.trim().length > 0) {
+                    typingTimer = setTimeout(() => {
+                        enterIcon.classList.add('visible');
+                    }, typingDelay);
+                }
+            });
+
+            userInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    generatePrompt();
+                    return;
+                }
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    enterIcon.classList.remove('visible');
+                    addFragment();
+                }
+            });
+        }
+
+        // Generar prompt final
+        function generatePrompt() {
+            if (userTexts.length === 0) {
+                alert('Escribe algo primero para generar el prompt');
+                return;
+            }
+
+            // Ocultar interfaz de input
+            document.getElementById('inputLine').style.display = 'none';
+            suggestionsContainer.style.display = 'none';
+            accumulatedText.style.display = 'none';
+
+            // Extraer los textos del usuario (sin prefijos conversacionales)
+            const sujeto = userTexts[0] || '';
+            const accion = userTexts[1] || '';
+            const entorno = userTexts[2] || '';
+            const estilo = userTexts[3] || '';
+            const iluminacion = userTexts[4] || '';
+            const detalles = userTexts[5] || '';
+
+            // Construir prompt narrativo profesional siguiendo mejores prácticas
+            // Formato optimizado para modelos de IA (especialmente Nanobanana/Gemini)
+
+            let promptSentences = [];
+
+            // Oración 1: Sujeto + Acción + Entorno
+            let mainDescription = '';
+            if (sujeto) {
+                mainDescription = sujeto.charAt(0).toUpperCase() + sujeto.slice(1);
+            }
+            if (accion) {
+                mainDescription += mainDescription ? ', ' + accion : accion.charAt(0).toUpperCase() + accion.slice(1);
+            }
+            if (entorno) {
+                const enPrepend = entorno.toLowerCase().startsWith('en ') ? '' : 'en ';
+                mainDescription += mainDescription ? ', ' + enPrepend + entorno : (enPrepend + entorno).charAt(0).toUpperCase() + (enPrepend + entorno).slice(1);
+            }
+            if (mainDescription) {
+                promptSentences.push(mainDescription + '.');
+            }
+
+            // Oración 2: Estilo + Iluminación
+            let styleDescription = '';
+            if (estilo) {
+                // Si estilo ya incluye palabras como "fotografía", "ilustración", no agregar prefijo
+                const needsPrefix = !estilo.toLowerCase().match(/^(fotografía|ilustración|render|estilo|pintura|arte)/);
+                styleDescription = needsPrefix ? 'Estilo de ' + estilo : estilo.charAt(0).toUpperCase() + estilo.slice(1);
+            }
+            if (iluminacion) {
+                // Agregar "iluminación" como prefijo si no está presente
+                let iluminacionText = iluminacion;
+                const iluminacionLower = iluminacion.toLowerCase();
+
+                // Si no contiene la palabra "iluminación", agregarla
+                if (!iluminacionLower.includes('iluminación')) {
+                    iluminacionText = 'iluminación ' + iluminacion;
+                }
+
+                // Evitar duplicación "iluminación iluminación"
+                iluminacionText = iluminacionText.replace(/iluminación\s+iluminación/gi, 'iluminación');
+
+                // Agregar "con" si es necesario
+                const conPrepend = iluminacionText.toLowerCase().startsWith('con ') ? '' : 'con ';
+                styleDescription += styleDescription ? ' ' + conPrepend + iluminacionText : (conPrepend + iluminacionText).charAt(0).toUpperCase() + (conPrepend + iluminacionText).slice(1);
+            }
+            if (styleDescription) {
+                promptSentences.push(styleDescription + '.');
+            }
+
+            // Oración 3: Detalles
+            if (detalles) {
+                const needsPrefix = !detalles.toLowerCase().match(/^(destaca|destacan|incluye|presenta|con|tiene)/);
+                const detailsText = needsPrefix ? 'Destaca ' + detalles : detalles.charAt(0).toUpperCase() + detalles.slice(1);
+                promptSentences.push(detailsText + '.');
+            }
+
+            // Unir todas las oraciones
+            const prompt = promptSentences.join(' ');
+
+            // Mostrar resultado
+            resultPrompt.textContent = prompt;
+            resultContainer.classList.remove('hidden');
+            window.generatedPrompt = prompt;
+        }
+
+        // Copiar al portapapeles
+        function copyToClipboard() {
             if (window.generatedPrompt) {
                 navigator.clipboard.writeText(window.generatedPrompt).then(() => {
                     alert('✅ Prompt copiado al portapapeles');
@@ -1788,53 +989,96 @@
             }
         }
 
+        // Reiniciar
         function restart() {
-            answers = {};
+            accumulatedContent = [];
+            userTexts = [];
+            selectedSuggestionIndex = -1;
+            currentSuggestions = [];
+            wordCount = 0;
             currentStep = 0;
             subjectCategory = 'general';
-            messagesArea.innerHTML = '';
 
-            addMessage('¡Hola! 👋 Soy Mondriart. Te guiaré con <strong>preguntas clave de prompting</strong> para generar un prompt optimizado para Nano Banana, DALL-E y otros modelos.', false);
+            // Restaurar el HTML del input line completo
+            const inputLine = document.getElementById('inputLine');
+            inputLine.innerHTML = `
+                <span class="step-tag" id="stepTag">SUJETO</span>
+                <span class="input-prefix" id="inputPrefix">La imagen de</span>
+                <div class="input-wrapper">
+                    <textarea class="user-input" id="userInput" autocomplete="off" spellcheck="false" placeholder="" rows="1"></textarea>
+                    <div class="enter-icon" id="enterIcon">
+                        <span class="enter-arrow"></span>
+                    </div>
+                </div>
+            `;
+            inputLine.style.display = 'flex';
+            inputLine.style.fontSize = '1.8em';
 
-            setTimeout(() => {
-                askQuestion(0);
-            }, 1000);
+            // Actualizar referencias DOM a los nuevos elementos
+            userInput = document.getElementById('userInput');
+            inputPrefix = document.querySelector('.input-prefix');
+            stepTag = document.getElementById('stepTag');
+            enterIcon = document.getElementById('enterIcon');
+
+            // Mostrar contenedores
+            suggestionsContainer.style.display = 'block';
+            accumulatedText.style.display = 'block';
+            inputExamples.style.display = 'block';
+            resultContainer.classList.add('hidden');
+
+            // Limpiar contenidos
+            accumulatedText.innerHTML = '';
+            suggestionsContainer.innerHTML = '';
+
+            // Actualizar para el primer paso
+            updateInputForStep();
+
+            // Re-adjuntar event listeners
+            reattachEventListeners();
+
+            // Focus en el input
+            if (userInput) userInput.focus();
         }
 
         // Event listeners
-        sendButton.addEventListener('click', handleUserResponse);
+        userInput.addEventListener('input', () => {
+            autoExpandTextarea();
+            updateWordCount();
 
-        messageInput.addEventListener('input', handleInputChange);
+            // Ocultar icono mientras escribe
+            enterIcon.classList.remove('visible');
 
-        messageInput.addEventListener('keydown', handleAutocompleteKeydown);
+            // Resetear timer
+            clearTimeout(typingTimer);
 
-        messageInput.addEventListener('keypress', (e) => {
+            // Si hay texto, mostrar icono después de parar de escribir
+            if (userInput.value.trim().length > 0) {
+                typingTimer = setTimeout(() => {
+                    enterIcon.classList.add('visible');
+                }, typingDelay);
+            }
+        });
+
+        userInput.addEventListener('keydown', (e) => {
+            // Ctrl+Enter para generar prompt (antes de completar los 5 pasos)
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                generatePrompt();
+                return;
+            }
+
+            // Enter normal: agregar fragmento al texto acumulado y avanzar paso
             if (e.key === 'Enter') {
-                // Solo enviar si no hay sugerencia seleccionada
-                const isDropdownOpen = autocompleteDropdown.classList.contains('active');
-                if (!isDropdownOpen || selectedSuggestionIndex < 0) {
-                    handleUserResponse();
-                }
+                e.preventDefault();
+                enterIcon.classList.remove('visible'); // Ocultar icono al presionar Enter
+                addFragment();
             }
         });
 
-        // Cerrar dropdown al hacer click fuera
-        document.addEventListener('click', (e) => {
-            if (!messageInput.contains(e.target) && !autocompleteDropdown.contains(e.target)) {
-                autocompleteDropdown.classList.remove('active');
-                selectedSuggestionIndex = -1;
-                currentSuggestions = [];
-            }
-        });
-
-        // Iniciar conversación
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                addMessage('¡Hola! 👋 Soy Mondriart. Te guiaré con <strong>preguntas clave de prompting</strong> para generar un prompt optimizado para Nano Banana, DALL-E y otros modelos.', false);
-                setTimeout(() => {
-                    askQuestion(0);
-                }, 1500);
-            }, 500);
+        // Mantener focus en el input
+        document.addEventListener('click', () => {
+            if (!resultContainer.classList.contains('hidden')) return;
+            userInput.focus();
         });
     </script>
 </body>
